@@ -1,0 +1,814 @@
+swagger: '2.0'
+# ----------------------------- INFO
+info:
+  version: 1.0.0
+  title: UbicaTec API
+  description: |
+    This API allows Tecs' students to navigate throught the campus, rent books, order food, 
+    print documents and get help inside the Tec Campus Cuernavaca.
+  contact:
+    name: Abraham Torres
+    email: jabraham9719@gmail.com
+
+  license:
+    name: MIT
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+# ----------------------------- CONFIGURATION
+host: localhost:3000
+basePath: /UbicaTec/v1
+schemes:
+ - http
+ - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+# ----------------------------- PARAMS
+parameters:
+  pageSize:
+    name: pageSize
+    in: query
+    type: integer
+    format: int64
+    description: Size of the chunks of data requested
+  pageIndex:
+    name: pageIndex
+    in: query
+    type: integer
+    format: int64
+    description: Index of the page to be withdrawn by the API
+  orderMode:
+    name: orderMode
+    in: query
+    type: string
+    enum:
+    - ASC
+    - DESC
+    description: Mode to order elements, orderBy has to be specified default is set to asc
+
+# ----------------------------- RESPONSES
+responses:
+  SuccessfulResponse:
+    description: successful operation
+    schema:
+      $ref: '#/definitions/APIResponse'
+  ErrorResponse:
+    description: bad request
+    schema:
+      $ref: '#/definitions/APIResponse'
+  NoAccessResponse:
+    description: unauthorized access
+    schema:
+      $ref: '#/definitions/APIResponse'
+# ----------------------------- TAGS
+tags:
+- name: users
+  description: Provides endpoints to authenticate users
+- name: places
+  description: Provides endpoints to navigate and search places inside the campus
+- name: books
+  description: Provides endpoints to search and get and search books
+- name: rooms
+  description: Provides endpoints to search and get and search library rooms
+- name: rental
+  description: Provides endpoints to rent and rent/return/reserve library rooms and books
+
+paths:
+  # ----------------------------- USERS 
+  /user:
+    get:
+      tags:
+      - users
+      summary: get all the users
+      description: | 
+        This returns all the active users of the ubicatec by default, can include the inactive ones if [inactive] is set to true. 
+        If optional filters in query are provided it will filter by name, lastname or email.
+        If [pageSize] and [pageIndex] are provided, the API will divide in chunks of size [pageSize] the list of users and return the 
+        [pageIndex] chunk of users. If paging parameters are not the default values are pageIndex = 0, pageSize = 100
+      operationId: listUsers
+      x-implementation:
+        type: GET_ALL
+        $ref: '#/definitions/User'
+        pageIndex: pageIndex
+        pageSize: pageSize
+      parameters:
+      - in: query
+        name: inactive
+        type: boolean
+        description: whether or not include inactive users
+      - in: query
+        name: name
+        type: string
+        description: name for filter the users
+      - in: query
+        name: lastname
+        type: string
+        description: lastname for filter the users
+      - in: query
+        name: email
+        type: string
+        format: email
+        description: email for filter the users
+      - $ref: '#/parameters/pageSize'
+      - $ref: '#/parameters/pageIndex'
+      - $ref: '#/parameters/orderMode'
+      - in: query
+        name: orderBy
+        type: string
+        description: Field to order by the query
+        enum:
+          - name
+          - lastname
+          - email
+          - username
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/UserCollection'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /user/{idUser}:
+    get:
+      tags:
+      - users
+      summary: gets an specific user
+      description: This will return the user that matches with the provided [idUser]
+      operationId: getUser
+      x-implementation:
+        type: GET
+        $ref: '#/definitions/User'
+      parameters:
+      - name: idUser
+        in: path
+        description: idUser of the searched user
+        required: true
+        type: integer
+      - in: query
+        name: inactive
+        type: boolean
+        description: whether or not include inactive users
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/User'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /user/registration:
+    post:
+      tags:
+      - users
+      summary: creates a new user
+      description: This will create a new user with the provided data in rawUser
+      operationId: createUser
+      parameters:
+      - in: body
+        name: newUser
+        description: User necessary data to create a new user
+        schema:
+          $ref: '#/definitions/User'
+      responses:
+        201:
+          $ref: '#/responses/SuccessfulResponse'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+          
+  # ----------------------------- PLACES 
+  /place:
+    get:
+      tags:
+      - places
+      summary: get all the places
+      description: | 
+        This returns all the places of the campus.
+        If optional filters in query are provided it will filter by those fields.
+        If [pageSize] and [pageIndex] are provided, the API will divide in chunks of size [pageSize] the list of places and return the 
+        [pageIndex] chunk of places. If paging parameters are not the default values are pageIndex = 0, pageSize = 100
+      operationId: listPlaces
+      x-implementation:
+        type: GET_ALL
+        $ref: '#/definitions/Place'
+        pageIndex: pageIndex
+        pageSize: pageSize
+      parameters:
+      - in: query
+        name: name
+        type: string
+        description: name for filter the places
+      - in: query
+        name: nearbyLat
+        type: number
+        description: latitude of the coordinate to get places nearby
+      - in: query
+        name: nearbyLng
+        type: number
+        description: longitude of the coordinate to get places nearby
+      - $ref: '#/parameters/pageSize'
+      - $ref: '#/parameters/pageIndex'
+      - $ref: '#/parameters/orderMode'
+      - in: query
+        name: orderBy
+        type: string
+        description: Field to order by the query
+        enum:
+          - name
+          - nearby
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/PlaceCollection'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /place/{idPlace}:
+    get:
+      tags:
+      - places
+      summary: gets an specific place
+      description: This will return the place that matches with the provided [idPlace]
+      operationId: getPlace
+      x-implementation:
+        type: GET
+        $ref: '#/definitions/Place'
+      parameters:
+      - name: idPlace
+        in: path
+        description: idPlace of the searched place
+        required: true
+        type: integer
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Place'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+
+  # ----------------------------- BOOKS 
+  /book:
+    get:
+      tags:
+      - books
+      summary: get all the books
+      description: | 
+        This returns all the books of the campus library. 
+        If [pageSize] and [pageIndex] are provided, the API will divide in chunks of size [pageSize] the 
+        list of books and return the [pageIndex] chunk of books. If paging parameters are not the default values are pageIndex = 0, pageSize = 100
+      operationId: listBooks
+      x-implementation:
+        type: GET_ALL
+        $ref: '#/definitions/Book'
+        pageIndex: pageIndex
+        pageSize: pageSize
+      parameters:
+      - in: query
+        name: name
+        type: string
+        description: name for filter the books
+      - in: query
+        name: category
+        type: string
+        description: category for filter the books
+      - in: query
+        name: bookStatus
+        type: string
+        description: bookStatus for filter the books
+        enum:
+          - AVAILABLE
+          - RENTED
+          - RESERVED
+      - $ref: '#/parameters/pageSize'
+      - $ref: '#/parameters/pageIndex'
+      - $ref: '#/parameters/orderMode'
+      - in: query
+        name: orderBy
+        type: string
+        description: Field to order by the query
+        enum:
+          - name
+          - category
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/BookCollection'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /book/{idBook}:
+    get:
+      tags:
+      - books
+      summary: gets an specific book
+      description: This will return the book that matches with the provided [idBook]
+      operationId: getBook
+      x-implementation:
+        type: GET
+        $ref: '#/definitions/Book'
+      parameters:
+      - name: idBook
+        in: path
+        description: idBook of the searched book
+        required: true
+        type: integer
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Book'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+
+  # ----------------------------- ROOMS 
+  /room:
+    get:
+      tags:
+      - rooms
+      summary: get all the rooms
+      description: | 
+        This returns all the rooms of the campus library. 
+        If [pageSize] and [pageIndex] are provided, the API will divide in chunks of size [pageSize] the 
+        list of rooms and return the [pageIndex] chunk of rooms. If paging parameters are not the default values are pageIndex = 0, pageSize = 100
+      operationId: listRooms
+      x-implementation:
+        type: GET_ALL
+        $ref: '#/definitions/Room'
+        pageIndex: pageIndex
+        pageSize: pageSize
+      parameters:
+      - in: query
+        name: name
+        type: string
+        description: name for filter the rooms
+      - in: query
+        name: category
+        type: string
+        description: category for filter the rooms
+      - in: query
+        name: roomStatus
+        type: string
+        description: roomStatus for filter the rooms
+        enum:
+          - AVAILABLE
+          - RENTED
+          - RESERVED
+      - $ref: '#/parameters/pageSize'
+      - $ref: '#/parameters/pageIndex'
+      - $ref: '#/parameters/orderMode'
+      - in: query
+        name: orderBy
+        type: string
+        description: Field to order by the query
+        enum:
+          - name
+          - category
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/RoomCollection'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /room/{idRoom}:
+    get:
+      tags:
+      - rooms
+      summary: gets an specific room
+      description: This will return the room that matches with the provided [idRoom]
+      operationId: getRoom
+      x-implementation:
+        type: GET
+        $ref: '#/definitions/Room'
+      parameters:
+      - name: idRoom
+        in: path
+        description: idRoom of the searched room
+        required: true
+        type: integer
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Room'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+
+  # ----------------------------- RENTAL 
+  /rental/room/{idRoom}:
+    put:
+      tags:
+      - rental
+      summary: rent/return/reserve a room
+      description: | 
+        This will rent/return/reserve the library room with the provided [idRoom]
+      operationId: rentRoom
+      parameters:
+      - in: path
+        name: idRoom
+        type: integer
+        format: uint64
+        required: true
+        description: id of the room to rent/return/reserve
+      - in: body
+        name: rental
+        schema: 
+          $ref: '#/definitions/APIResponse'
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/APIResponse'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /rental/book/{idBook}:
+    put:
+      tags:
+      - rental
+      summary: rent/return/reserve a book
+      description: | 
+        This will rent/return/reserve the library book with the provided [idBook]
+      operationId: rentBook
+      parameters:
+      - in: path
+        name: idBook
+        type: integer
+        format: uint64
+        required: true
+        description: id of the book to rent/return/reserve
+      - in: body
+        name: rental
+        schema: 
+          $ref: '#/definitions/APIResponse'
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/APIResponse'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /rental/user/{idUser}/book:
+    get:
+      tags:
+      - rental
+      summary: gets the book rentals of a specific user
+      description: This will return a collection of book rentals from an specific user that matches the specific [idUser]
+      operationId: getBookRentals
+      parameters:
+      - name: idUser
+        in: path
+        description: idUser of the searched user
+        required: true
+        type: integer
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/RentalCollection'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+  /rental/user/{idUser}/room:
+    get:
+      tags:
+      - rental
+      summary: gets the room rentals of a specific user
+      description: This will return a collection of room rentals from an specific user that matches the specific [idUser]
+      operationId: getRoomRentals
+      parameters:
+      - name: idUser
+        in: path
+        description: idUser of the searched user
+        required: true
+        type: integer
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/RentalCollection'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
+
+definitions:
+
+  APIResponse:
+    type: object
+    required:
+    - responseCode
+    - type
+    - message
+    properties:
+      responseCode:
+        type: integer
+        format: int32
+      type:
+        type: string
+        enum:
+        - ERROR
+        - SUCCESS
+      message:
+        type: string
+        example: Unauthorized access to the API
+      extra:
+        type: object
+        description: Extra fields to return on the response
+        example: 
+          resourceId: 1
+      debugMessage:
+        type: object
+        example: 
+          debugMessage: This is a debug message
+  
+  User:
+    type: object
+    description: User of the ubicatec that can create events
+    x-table:
+      tableName: User
+      id: idUser
+    properties:
+      idUser:
+        type: integer
+        format: uint64
+        description: The unique identifier of the User
+        example: 1
+        x-increments: true
+        x-primary: true
+      name:
+        type: string
+        description: The name of the user
+        example: John
+        x-name: nombre
+        x-required: true
+      lastname:
+        type: string
+        description: The lastname of the user
+        example: Smith
+        x-name: apellidos
+      studentNumber:
+        type: string
+        description: The student number of the user
+        example: johnsmith
+        x-name: matricula
+        x-required: true
+        x-unique: true
+      fbUserId:
+        type: string
+        description:  The facebook user id, to link each facebook user to a student
+        x-name: identificador de facebook
+        x-required: true
+        x-unique: true
+
+  UserCollection:
+    type: object
+    description: Stores multiple UserSummaries
+    required:
+    - results
+    - total
+    properties:
+      results:
+        type: array
+        items: 
+          $ref: '#/definitions/User'
+        description: Users array
+      total: 
+        type: integer
+        description: Total number of users that matches the query
+
+  Place:
+    type: object
+    description: Place of the ubicatec that can create events
+    x-table:
+      tableName: Place
+      id: idPlace
+    properties:
+      idPlace:
+        type: integer
+        format: uint64
+        description: The unique identifier of the Place
+        example: 1
+        x-required: true
+        x-increments: true
+        x-primary: true
+      name:
+        type: string
+        description: The name of the place
+        example: Auditorio
+        x-name: nombre
+        x-required: true
+      description:
+        type: string
+        description: The description of the place
+        example: Edificio dedicado a eventos del campus
+        x-name: descripcion
+      fence:
+        type: string
+        description: The geo fence of the place
+        x-name: fence
+        x-required: true
+        x-unique: true
+
+  PlaceCollection:
+    type: object
+    description: Stores multiple PlaceSummaries
+    required:
+    - results
+    - total
+    properties:
+      results:
+        type: array
+        items: 
+          $ref: '#/definitions/PlaceCollection'
+        description: Places array
+      total: 
+        type: integer
+        description: Total number of places that matches the query
+
+  Book:
+    type: object
+    description: Book for the places
+    x-table:
+      tableName: Book
+      id: idBook
+    properties:
+      idBook:
+        type: integer
+        format: uint64
+        description: The unique identifier of the Book
+        example: 1
+        x-required: true
+        x-increments: true
+        x-primary: true
+      title:
+        type: string
+        description: The title of the book
+        example: Harry Potter
+        x-required: true
+        x-name: título
+      description:
+        type: string
+        description: The description of the book
+        example: Scifi book of magic
+        x-name: descripción
+      code:
+        type: string
+        description: The code of the book
+        example: MOR.AE.1997.C2
+        x-name: código
+      status:
+        type: string
+        enum:
+          - AVAILABLE
+          - RENTED
+          - RESERVED
+
+  BookCollection:
+    type: object
+    description: Stores multiple Books
+    required:
+    - results
+    - total
+    properties:
+      results:
+        type: array
+        items: 
+          $ref: '#/definitions/Book'
+        description: Books array
+      total: 
+        type: integer
+        description: Total number of books that matches the query
+  
+  Room:
+    type: object
+    description: Room for the places
+    x-table:
+      tableName: Room
+      id: idRoom
+    required:
+    - module
+    - level
+    - fkBook
+    properties:
+      idRoom:
+        type: integer
+        format: uint64
+        description: The unique identifier of the Room
+        example: 1
+        x-required: true
+        x-increments: true
+        x-primary: true
+      number:
+        type: integer
+        format: uint64
+        description: The number of the room
+        example: 
+        x-required: true
+        x-name: número
+      status:
+        type: string
+        enum:
+          - AVAILABLE
+          - RENTED
+          - RESERVED
+
+  RoomCollection:
+    type: object
+    description: Stores multiple Rooms
+    required:
+    - results
+    - total
+    properties:
+      results:
+        type: array
+        items: 
+          $ref: '#/definitions/Room'
+        description: Rooms array
+      total: 
+        type: integer
+        description: Total number of rooms that matches the query
+  
+  Rental:
+    type: object
+    description: Rental of books and rooms
+    x-table:
+      tableName: Rental
+      id: idRental
+    required:
+    - module
+    - level
+    - fkBook
+    properties:
+      idRental:
+        type: integer
+        format: uint64
+        description: The unique identifier of the Rental
+        example: 1
+        x-required: true
+        x-increments: true
+        x-primary: true
+      fkBook:
+        type: integer
+        format: uint64
+        description: The foreign key of the book associated with this rental, if it is a book rental
+        example: 1
+        x-reference: '#/definitions/Book'
+      fkRoom:
+        type: integer
+        format: uint64
+        description: The foreign key of the book associated with this rental, if it is a room rental
+        example: 1
+        x-reference: '#/definitions/Room'
+      type:
+        type: string
+        enum:
+          - RENT
+          - RESERVE
+          - RETURN
+      book:
+        type: object
+        $ref: '#/definitions/Book'
+      room:
+        type: object
+        $ref: '#/definitions/Room'
+
+  RentalCollection:
+    type: object
+    description: Stores multiple Rentals
+    required:
+    - results
+    - total
+    properties:
+      results:
+        type: array
+        items: 
+          $ref: '#/definitions/Rental'
+        description: Rentals array
+      total: 
+        type: integer
+        description: Total number of rooms that matches the query
+  

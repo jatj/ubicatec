@@ -1,0 +1,94 @@
+{
+  "name": "ubica_tec_api",
+  "version": "1.0.0",
+  "description": "This API allows Tecs&#x27; students to navigate throught the campus, rent books, order food, print documents and get help inside the Tec Campus Cuernavaca.",
+  "main": "index.js",
+  "author": "Abraham Torres - jabraham9719@gmail.com",
+  "license": "MIT",
+  "scripts": {
+    "migrate": "knex migrate:latest",
+    "migrate-production": "ENV=PROD knex migrate:latest --env production",
+    "build": "tsc",
+    "start": "node server.js",
+    "start:prod": "ENV=PROD node server.js",
+    "start:prod:clean": "npm run clean-production && ENV=PROD node server.js",
+    "clean": "rimraf temp/**",
+    "clean-production": "nodetools setup-db --env=PROD && ENV=PROD knex migrate:latest --env production",
+    "test": "mocha -r source-map-support/register ./test/**/*.test.js",
+    "coverage": "nyc mocha ./test/**/*.test.js --reporter mocha-junit-reporter --reporter-options mochaFile=./coverage/test-results.xml",
+    "show-coverage": "open coverage/index.html",
+    "postinstall": "node res/patch-objection-db-error.js && node res/patch-kubernetes-client.js"
+  },
+  "nyc": {
+    "all": false,
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "src/services/**"
+    ],
+    "exclude": [
+      "test/**",
+      "migrations/**",
+      "res/**",
+      "temp/**"
+    ],
+    "reporter": [
+      "text",
+      "html",
+      "cobertura"
+    ]
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.5.12",
+    "@types/chai": "^4.1.7",
+    "@types/chai-json-schema": "^1.4.4",
+    "@types/js-yaml": "^3.12.1",
+    "@types/mocha": "^5.2.6",
+    "@types/moment-timezone": "^0.5.12",
+    "@types/node": "^10.12.21",
+    "@types/request": "^2.48.1",
+    "@types/swagger-parser": "^4.0.3",
+    "@types/swagger-tools": "^0.10.6",
+    "chai": "^4.2.0",
+    "chai-exclude": "^1.0.12",
+    "chai-http": "^4.2.1",
+    "chai-json-equal": "^0.0.1",
+    "chai-json-schema": "^1.5.1",
+    "faker": "^4.1.0",
+    "grunt": "^1.0.3",
+    "grunt-concurrent": "^2.3.1",
+    "grunt-nodemon": "^0.4.2",
+    "grunt-run": "^0.8.1",
+    "grunt-ts": "^6.0.0-beta.22",
+    "json-schema-faker": "^0.5.0-rc16",
+    "mocha": "^5.2.0",
+    "mocha-junit-reporter": "^1.23.1",
+    "nyc": "^14.1.1",
+    "openapi-schema-to-json-schema": "^2.2.0",
+    "shelljs": "^0.8.3",
+    "source-map-support": "^0.5.13"
+  },
+  "dependencies": {
+    "@conectasystems/tools": "0.0.18",
+    "@kubernetes/client-node": "^0.9.2",
+    "amqplib": "^0.5.3",
+    "dotenv": "^7.0.0",
+    "express": "^4.17.1",
+    "js-yaml": "^3.12.2",
+    "knex": "^0.19.0",
+    "moment": "^2.24.0",
+    "moment-timezone": "^0.5.25",
+    "mysql2": "^1.7.0",
+    "objection": "^1.6.7",
+    "objection-db-errors": "^1.1.0",
+    "promise": "^8.0.2",
+    "request": "^2.88.0",
+    "rimraf": "^2.6.2",
+    "sqlite3": "^4.0.6",
+    "superagent": "^4.1.0",
+    "swagger-parser": "^6.0.5",
+    "swagger-tools": "^0.10.4",
+    "typescript": "^3.3.1"
+  }
+}
