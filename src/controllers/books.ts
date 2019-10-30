@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { container } from "tsyringe";
 import { API } from '@conectasystems/tools';
 import { BooksService } from '../services/books';
 import { UbicaTecAPIModels } from '../models';
@@ -18,7 +20,9 @@ export const listBooks: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
     var category = req.swagger.params['category'].value;
     var name = req.swagger.params['name'].value;
     try{
-        let result = await BooksService.listBooks(req, orderBy, orderMode, pageIndex, pageSize, bookStatus, category, name);
+        const booksService = container.resolve(BooksService);
+        booksService.init(req);
+        let result = await booksService.listBooks(orderBy, orderMode, pageIndex, pageSize, bookStatus, category, name);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -31,7 +35,9 @@ export const listBooks: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
 export const getBook: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var idBook = req.swagger.params['idBook'].value;
     try{
-        let result = await BooksService.getBook(req, idBook);
+        const booksService = container.resolve(BooksService);
+        booksService.init(req);
+        let result = await booksService.getBook(idBook);
         res.respond(result);
     }catch (error) {
         next(error);

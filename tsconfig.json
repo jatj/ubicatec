@@ -3,6 +3,7 @@
     "module": "commonjs",
     "target": "ES6",
     "removeComments": true,
+    "experimentalDecorators": true,
     "resolveJsonModule": true,
     "preserveConstEnums": true,
     "inlineSourceMap": true,

@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { container } from "tsyringe";
 import { API } from '@conectasystems/tools';
 import { PlacesService } from '../services/places';
 import { UbicaTecAPIModels } from '../models';
@@ -19,7 +21,9 @@ export const listPlaces: API.NextHandleFunction<UbicaTecAPIModels> = async (req,
     var nearbyLat = req.swagger.params['nearbyLat'].value;
     var name = req.swagger.params['name'].value;
     try{
-        let result = await PlacesService.listPlaces(req, orderBy, orderMode, pageIndex, pageSize, nearbyLng, nearbyLat, name);
+        const placesService = container.resolve(PlacesService);
+        placesService.init(req);
+        let result = await placesService.listPlaces(orderBy, orderMode, pageIndex, pageSize, nearbyLng, nearbyLat, name);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -32,7 +36,9 @@ export const listPlaces: API.NextHandleFunction<UbicaTecAPIModels> = async (req,
 export const getPlace: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var idPlace = req.swagger.params['idPlace'].value;
     try{
-        let result = await PlacesService.getPlace(req, idPlace);
+        const placesService = container.resolve(PlacesService);
+        placesService.init(req);
+        let result = await placesService.getPlace(idPlace);
         res.respond(result);
     }catch (error) {
         next(error);

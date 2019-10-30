@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { container } from "tsyringe";
 import { API } from '@conectasystems/tools';
 import { RentalService } from '../services/rental';
 import { UbicaTecAPIModels } from '../models';
@@ -12,7 +14,9 @@ export const rentRoom: API.NextHandleFunction<UbicaTecAPIModels> = async (req, r
     var idRoom = req.swagger.params['idRoom'].value;
     var rental = req.swagger.params['rental'].value;
     try{
-        let result = await RentalService.rentRoom(req, idRoom, rental);
+        const rentalsService = container.resolve(RentalService);
+        rentalsService.init(req);
+        let result = await rentalsService.rentRoom(idRoom, rental);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -27,7 +31,9 @@ export const rentBook: API.NextHandleFunction<UbicaTecAPIModels> = async (req, r
     var idBook = req.swagger.params['idBook'].value;
     var rental = req.swagger.params['rental'].value;
     try{
-        let result = await RentalService.rentBook(req, idBook, rental);
+        const rentalsService = container.resolve(RentalService);
+        rentalsService.init(req);
+        let result = await rentalsService.rentBook(idBook, rental);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -40,7 +46,9 @@ export const rentBook: API.NextHandleFunction<UbicaTecAPIModels> = async (req, r
 export const getBookRentals: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var idUser = req.swagger.params['idUser'].value;
     try{
-        let result = await RentalService.getBookRentals(req, idUser);
+        const rentalsService = container.resolve(RentalService);
+        rentalsService.init(req);
+        let result = await rentalsService.getBookRentals(idUser);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -53,7 +61,9 @@ export const getBookRentals: API.NextHandleFunction<UbicaTecAPIModels> = async (
 export const getRoomRentals: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var idUser = req.swagger.params['idUser'].value;
     try{
-        let result = await RentalService.getRoomRentals(req, idUser);
+        const rentalsService = container.resolve(RentalService);
+        rentalsService.init(req);
+        let result = await rentalsService.getRoomRentals(idUser);
         res.respond(result);
     }catch (error) {
         next(error);

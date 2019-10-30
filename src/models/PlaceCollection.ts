@@ -6,16 +6,16 @@
  * Contact: jabraham9719@gmail.com
  *
  */
-import PlaceCollection from './PlaceCollection';
+import Place from './Place';
 
 export interface IPlaceCollection { 
-    results: PlaceCollection[];
+    results: Place[];
     total: number;
 }
 
 
 export default class PlaceCollection implements IPlaceCollection { 
-    results: PlaceCollection[];
+    results: Place[];
     total: number;
 
     constructor(obj?: IPlaceCollection){

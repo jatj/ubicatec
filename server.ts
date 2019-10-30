@@ -4,25 +4,16 @@ import * as jsyaml from 'js-yaml';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as http from 'http';
-import { Utils, KongConfig, Logger, API, DB } from '@conectasystems/tools';
+import { Utils, Logger, API, DB } from '@conectasystems/tools';
 import { UbicaTecAPIModels } from './src/models';
+import { development } from './knexfile';
 
 async function InitializeServer() {
     const app = express();
     const serverPort = process.env.PORT;
 
     // Set manager configuration
-    DB.Manager.getInstance(process.env.DB_ENV as DB.Env);
-
-    // Get Kong configuration
-    if (process.env.PRODUCTION) {
-        try {
-            KongConfig.getInstance();
-        } catch (error) {
-            Logger.error('Could not get kong config, aborting', error)
-            return
-        }
-    }
+    DB.Manager.getInstance(null, development);
 
     // swaggerRouter configuration
     var options = {
@@ -31,7 +22,7 @@ async function InitializeServer() {
     };
 
     // Loads and resolves the swager api
-    var apiSpec = API.Parse(jsyaml.safeLoad(fs.readFileSync(path.join(__dirname, './res/ubica_tec_api.yaml'), 'utf8')));
+    var apiSpec = API.Parse(jsyaml.safeLoad(fs.readFileSync(path.join(__dirname, './res/ubica_tec.yaml'), 'utf8')));
     // Initialize the Swagger middleware
     swaggerTools.initializeMiddleware(apiSpec, function (middleware) {
 

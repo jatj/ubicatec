@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { container } from "tsyringe";
 import { API } from '@conectasystems/tools';
 import { RoomsService } from '../services/rooms';
 import { UbicaTecAPIModels } from '../models';
@@ -18,7 +20,9 @@ export const listRooms: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
     var category = req.swagger.params['category'].value;
     var name = req.swagger.params['name'].value;
     try{
-        let result = await RoomsService.listRooms(req, orderBy, orderMode, pageIndex, pageSize, roomStatus, category, name);
+        const roomsService = container.resolve(RoomsService);
+        roomsService.init(req);
+        let result = await roomsService.listRooms(orderBy, orderMode, pageIndex, pageSize, roomStatus, category, name);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -31,7 +35,9 @@ export const listRooms: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
 export const getRoom: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var idRoom = req.swagger.params['idRoom'].value;
     try{
-        let result = await RoomsService.getRoom(req, idRoom);
+        const roomsService = container.resolve(RoomsService);
+        roomsService.init(req);
+        let result = await roomsService.getRoom(idRoom);
         res.respond(result);
     }catch (error) {
         next(error);

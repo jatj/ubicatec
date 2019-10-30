@@ -95,10 +95,6 @@ paths:
         pageSize: pageSize
       parameters:
       - in: query
-        name: inactive
-        type: boolean
-        description: whether or not include inactive users
-      - in: query
         name: name
         type: string
         description: name for filter the users
@@ -107,10 +103,15 @@ paths:
         type: string
         description: lastname for filter the users
       - in: query
-        name: email
+        name: studentNumber
         type: string
-        format: email
-        description: email for filter the users
+        format: studentNumber
+        description: studentNumber for filter the users
+      - in: query
+        name: fbUserId
+        type: string
+        format: fbUserId
+        description: fbUserId for filter the users
       - $ref: '#/parameters/pageSize'
       - $ref: '#/parameters/pageIndex'
       - $ref: '#/parameters/orderMode'
@@ -148,10 +149,6 @@ paths:
         description: idUser of the searched user
         required: true
         type: integer
-      - in: query
-        name: inactive
-        type: boolean
-        description: whether or not include inactive users
       responses:
         200:
           description: successful operation
@@ -643,7 +640,7 @@ definitions:
       results:
         type: array
         items: 
-          $ref: '#/definitions/PlaceCollection'
+          $ref: '#/definitions/Place'
         description: Places array
       total: 
         type: integer
@@ -710,9 +707,8 @@ definitions:
       tableName: Room
       id: idRoom
     required:
-    - module
-    - level
-    - fkBook
+    - status
+    - number
     properties:
       idRoom:
         type: integer
@@ -726,7 +722,7 @@ definitions:
         type: integer
         format: uint64
         description: The number of the room
-        example: 
+        example: 4
         x-required: true
         x-name: número
       status:
@@ -759,9 +755,7 @@ definitions:
       tableName: Rental
       id: idRental
     required:
-    - module
-    - level
-    - fkBook
+    - type
     properties:
       idRental:
         type: integer
@@ -771,6 +765,13 @@ definitions:
         x-required: true
         x-increments: true
         x-primary: true
+      fkUser:
+        type: integer
+        format: uint64
+        description: The foreign key of the user associated with this rental
+        example: 1
+        x-reference: '#/definitions/Book'
+        x-required: true
       fkBook:
         type: integer
         format: uint64

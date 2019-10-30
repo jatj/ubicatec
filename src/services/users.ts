@@ -1,12 +1,20 @@
-import { transaction } from 'objection';
+import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels } from '../models';
-import User from '../models/User';
+import { UbicaTecAPIModels, User } from '../models';
+import { transaction } from "objection";
 
 /**
  * Provides endpoints to authenticate users
  */
+@injectable()
 export class UsersService {
+    req: API.IServerRequest<UbicaTecAPIModels>;
+
+    constructor() { }
+
+    init(req: API.IServerRequest<UbicaTecAPIModels>) {
+        this.req = req;
+    }
 
     /**
     * get all the users
@@ -26,19 +34,17 @@ export class UsersService {
     * @param { boolean } inactive whether or not include inactive users (optional)
     * @returns { Promise<> }
     **/
-    static async listUsers (req: API.IServerRequest<UbicaTecAPIModels>, orderBy?: 'name' | 'lastname' | 'email' | 'username', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, email?: string, lastname?: string, name?: string, inactive?: boolean) {
-        try{
-            var users;
-            if (pageIndex != null && pageSize != null){
-                users = await req.query<User>(User)
-                .skipUndefined()
-                .page(pageIndex, pageSize);
-                return users;
-            }
-            users = await req.query<User>(User)
-            .skipUndefined()
-            return users;
-        }catch(error){
+    async listUsers (orderBy?: 'name' | 'lastname' | 'email' | 'username', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, studentNumber?: string, fbUserId?: string, lastname?: string, name?: string) {
+        try {
+            let query = this.req.query<User>(User).skipUndefined();
+            query = (name) ? query.where('name', 'like', `%${name}%`) : query;
+            query = (lastname) ? query.where('lastname', 'like', `%${lastname}%`) : query;
+            query = (studentNumber) ? query.where('studentNumber', 'like', `%${studentNumber}%`) : query;
+            query = (fbUserId) ? query.where('fbUserId', 'like', `%${fbUserId}%`) : query;
+            query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
+            query = (!orderBy) ? query.orderBy('idUser', orderMode || API.Defaults.orderMode) : query;
+            return Utils.collectionType<User>(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize), User);
+        } catch (error) {
             throw error;
         }
     }
@@ -48,12 +54,14 @@ export class UsersService {
     * This will return the user that matches with the provided [idUser]
     * @param { API.IServerRequest<UbicaTecAPIModels> } req request object from the client
     * @param { number } idUser idUser of the searched user 
-    * @param { boolean } inactive whether or not include inactive users (optional)
     * @returns { Promise<> }
     **/
-    static async getUser (req: API.IServerRequest<UbicaTecAPIModels>, idUser: number, inactive?: boolean) {
+    async getUser (idUser: number) {
         try{
-            const user = await req.query<User>(User).findById(idUser)
+            let query = this.req.query<User>(User).skipUndefined();
+            const user = await query.findById(idUser);
+            if (user == null)
+                throw new API.Error(API.Response.NOT_FOUND, 'El usuario no existe');
             return user;
         }catch(error){
             throw error;
@@ -62,15 +70,21 @@ export class UsersService {
 
     /**
     * creates a new user
-    * This will create a new user with the provided data in rawUser
+    * This will create a new user with the provided data in newUser
     * @param { API.IServerRequest<UbicaTecAPIModels> } req request object from the client
     * @param { User } newUser User necessary data to create a new user (optional)
     * @returns { Promise<> }
     **/
-    static async createUser (req: API.IServerRequest<UbicaTecAPIModels>, newUser?: User) {
-        try{
-            throw new API.Error(API.Response.UNHANDLED_ERROR, 'Not implemented');
-        }catch(error){
+    async createUser (newUser?: User) {
+        let trx = await transaction.start(this.req.tools.models.User.knex());
+        try {
+
+            let user = await this.req.query<User>(User, trx).insertAndFetch(newUser);
+
+            await trx.commit();
+            return new API.Success(API.Response.OK, 'Se ha creado el usuario', { user: new User(user) });
+        } catch (error) {
+            await trx.rollback();
             throw error;
         }
     }

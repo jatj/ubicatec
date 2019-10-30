@@ -1,12 +1,20 @@
-import { transaction } from 'objection';
+import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels } from '../models';
+import { UbicaTecAPIModels, Room } from '../models';
 
 /**
  * Provides endpoints to search and get and search library rooms
  */
+@injectable()
 export class RoomsService {
+    req: API.IServerRequest<UbicaTecAPIModels>;
 
+    constructor() { }
+
+    init(req: API.IServerRequest<UbicaTecAPIModels>) {
+        this.req = req;
+    }
+    
     /**
     * get all the rooms
     * This returns all the rooms of the campus library. 
@@ -23,16 +31,16 @@ export class RoomsService {
     * @param { string } name name for filter the rooms (optional)
     * @returns { Promise<> }
     **/
-    static async listRooms (req: API.IServerRequest<UbicaTecAPIModels>, orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, roomStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
+    async listRooms (orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, roomStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
         try{
             var rooms;
             if (pageIndex != null && pageSize != null){
-                rooms = await req.query<Room>(Room)
+                rooms = await this.req.query<Room>(Room)
                 .skipUndefined()
                 .page(pageIndex, pageSize);
                 return rooms;
             }
-            rooms = await req.query<Room>(Room)
+            rooms = await this.req.query<Room>(Room)
             .skipUndefined()
             return rooms;
         }catch(error){
@@ -47,9 +55,9 @@ export class RoomsService {
     * @param { number } idRoom idRoom of the searched room 
     * @returns { Promise<> }
     **/
-    static async getRoom (req: API.IServerRequest<UbicaTecAPIModels>, idRoom: number) {
+    async getRoom (idRoom: number) {
         try{
-            const room = await req.query<Room>(Room).findById(idRoom)
+            const room = await this.req.query<Room>(Room).findById(idRoom)
             return room;
         }catch(error){
             throw error;

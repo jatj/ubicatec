@@ -1,4 +1,4 @@
-import { transaction } from 'objection';
+import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
 import { UbicaTecAPIModels } from '../models';
 import APIResponse from '../models/APIResponse';
@@ -6,7 +6,15 @@ import APIResponse from '../models/APIResponse';
 /**
  * Provides endpoints to rent and rent/return/reserve library rooms and books
  */
+@injectable()
 export class RentalService {
+    req: API.IServerRequest<UbicaTecAPIModels>;
+
+    constructor() { }
+
+    init(req: API.IServerRequest<UbicaTecAPIModels>) {
+        this.req = req;
+    }
 
     /**
     * rent/return/reserve a room
@@ -17,7 +25,7 @@ export class RentalService {
     * @param { APIResponse } rental  (optional)
     * @returns { Promise<> }
     **/
-    static async rentRoom (req: API.IServerRequest<UbicaTecAPIModels>, idRoom: number, rental?: APIResponse) {
+    async rentRoom (idRoom: number, rental?: APIResponse) {
         try{
             throw new API.Error(API.Response.UNHANDLED_ERROR, 'Not implemented');
         }catch(error){
@@ -34,7 +42,7 @@ export class RentalService {
     * @param { APIResponse } rental  (optional)
     * @returns { Promise<> }
     **/
-    static async rentBook (req: API.IServerRequest<UbicaTecAPIModels>, idBook: number, rental?: APIResponse) {
+    async rentBook (idBook: number, rental?: APIResponse) {
         try{
             throw new API.Error(API.Response.UNHANDLED_ERROR, 'Not implemented');
         }catch(error){
@@ -49,7 +57,7 @@ export class RentalService {
     * @param { number } idUser idUser of the searched user 
     * @returns { Promise<> }
     **/
-    static async getBookRentals (req: API.IServerRequest<UbicaTecAPIModels>, idUser: number) {
+    async getBookRentals (idUser: number) {
         try{
             throw new API.Error(API.Response.UNHANDLED_ERROR, 'Not implemented');
         }catch(error){
@@ -64,7 +72,7 @@ export class RentalService {
     * @param { number } idUser idUser of the searched user 
     * @returns { Promise<> }
     **/
-    static async getRoomRentals (req: API.IServerRequest<UbicaTecAPIModels>, idUser: number) {
+    async getRoomRentals (idUser: number) {
         try{
             throw new API.Error(API.Response.UNHANDLED_ERROR, 'Not implemented');
         }catch(error){

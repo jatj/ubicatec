@@ -13,9 +13,10 @@ import Room from './Room';
 
 export interface IRental { 
     idRental: number;
-    fkBook: number;
+    fkUser: number;
+    fkBook?: number;
     fkRoom?: number;
-    type?: IRental.TypeEnum;
+    type: IRental.TypeEnum;
     book?: any;
     room?: any;
 }
@@ -31,9 +32,10 @@ export namespace IRental {
 
 export default class Rental extends BaseModel implements IRental { 
     idRental: number;
-    fkBook: number;
+    fkUser: number;
+    fkBook?: number;
     fkRoom?: number;
-    type?: IRental.TypeEnum;
+    type: IRental.TypeEnum;
     book?: any;
     room?: any;
 
@@ -41,6 +43,7 @@ export default class Rental extends BaseModel implements IRental {
         super()
         if(obj == null) return;
         this.idRental = obj.idRental;
+        this.fkUser = obj.fkUser;
         this.fkBook = obj.fkBook;
         this.fkRoom = obj.fkRoom;
         this.type = obj.type;
@@ -54,20 +57,23 @@ export default class Rental extends BaseModel implements IRental {
 
     static jsonSchema = {
         type: 'object',
-        required: ['module', 'level', 'fkBook', 'idRental'],
+        required: ['type', 'idRental', 'fkUser'],
 
         properties: {
             idRental: {
                 type: 'integer',
             },
-            fkBook: {
+            fkUser: {
                 type: 'integer',
+            },
+            fkBook: {
+                type: ['integer', null],
             },
             fkRoom: {
                 type: ['integer', null],
             },
             type: {
-                type: ['string', null],
+                type: 'string',
             },
             book: {
                 type: ['object', null],

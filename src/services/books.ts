@@ -1,11 +1,19 @@
-import { transaction } from 'objection';
+import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels } from '../models';
+import { UbicaTecAPIModels, Book } from '../models';
 
 /**
  * Provides endpoints to search and get and search books
  */
+@injectable()
 export class BooksService {
+    req: API.IServerRequest<UbicaTecAPIModels>;
+
+    constructor() { }
+
+    init(req: API.IServerRequest<UbicaTecAPIModels>) {
+        this.req = req;
+    }
 
     /**
     * get all the books
@@ -23,16 +31,16 @@ export class BooksService {
     * @param { string } name name for filter the books (optional)
     * @returns { Promise<> }
     **/
-    static async listBooks (req: API.IServerRequest<UbicaTecAPIModels>, orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, bookStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
+    async listBooks (orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, bookStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
         try{
             var books;
             if (pageIndex != null && pageSize != null){
-                books = await req.query<Book>(Book)
+                books = await this.req.query<Book>(Book)
                 .skipUndefined()
                 .page(pageIndex, pageSize);
                 return books;
             }
-            books = await req.query<Book>(Book)
+            books = await this.req.query<Book>(Book)
             .skipUndefined()
             return books;
         }catch(error){
@@ -47,9 +55,9 @@ export class BooksService {
     * @param { number } idBook idBook of the searched book 
     * @returns { Promise<> }
     **/
-    static async getBook (req: API.IServerRequest<UbicaTecAPIModels>, idBook: number) {
+    async getBook (idBook: number) {
         try{
-            const book = await req.query<Book>(Book).findById(idBook)
+            const book = await this.req.query<Book>(Book).findById(idBook)
             return book;
         }catch(error){
             throw error;

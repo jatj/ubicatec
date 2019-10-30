@@ -1,11 +1,19 @@
-import { transaction } from 'objection';
+import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels } from '../models';
+import { UbicaTecAPIModels, Place } from '../models';
 
 /**
  * Provides endpoints to navigate and search places inside the campus
  */
+@injectable()
 export class PlacesService {
+    req: API.IServerRequest<UbicaTecAPIModels>;
+
+    constructor() { }
+
+    init(req: API.IServerRequest<UbicaTecAPIModels>) {
+        this.req = req;
+    }
 
     /**
     * get all the places
@@ -24,16 +32,16 @@ export class PlacesService {
     * @param { string } name name for filter the places (optional)
     * @returns { Promise<> }
     **/
-    static async listPlaces (req: API.IServerRequest<UbicaTecAPIModels>, orderBy?: 'name' | 'nearby', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, nearbyLng?: number, nearbyLat?: number, name?: string) {
+    async listPlaces (orderBy?: 'name' | 'nearby', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, nearbyLng?: number, nearbyLat?: number, name?: string) {
         try{
             var places;
             if (pageIndex != null && pageSize != null){
-                places = await req.query<Place>(Place)
+                places = await this.req.query<Place>(Place)
                 .skipUndefined()
                 .page(pageIndex, pageSize);
                 return places;
             }
-            places = await req.query<Place>(Place)
+            places = await this.req.query<Place>(Place)
             .skipUndefined()
             return places;
         }catch(error){
@@ -48,9 +56,9 @@ export class PlacesService {
     * @param { number } idPlace idPlace of the searched place 
     * @returns { Promise<> }
     **/
-    static async getPlace (req: API.IServerRequest<UbicaTecAPIModels>, idPlace: number) {
+    async getPlace (idPlace: number) {
         try{
-            const place = await req.query<Place>(Place).findById(idPlace)
+            const place = await this.req.query<Place>(Place).findById(idPlace)
             return place;
         }catch(error){
             throw error;

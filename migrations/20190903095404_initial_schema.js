@@ -106,6 +106,7 @@ exports.up = knex => {
       // Creating property: status
       table
       .enu('status', ['AVAILABLE','RENTED','RESERVED'])
+      .notNullable()
     })
     /**
     * =================================
@@ -118,13 +119,20 @@ exports.up = knex => {
       .increments('idRental').primary()
       .notNullable()
       .comment('The unique identifier of the Rental')
+      // Creating property: fkUser
+      table
+      .integer('fkUser').unsigned()
+      .references('Book.idBook')
+      .index()
+      .onDelete('NO ACTION')
+      .notNullable()
+      .comment('The foreign key of the user associated with this rental')
       // Creating property: fkBook
       table
       .integer('fkBook').unsigned()
       .references('Book.idBook')
       .index()
       .onDelete('NO ACTION')
-      .notNullable()
       .comment('The foreign key of the book associated with this rental, if it is a book rental')
       // Creating property: fkRoom
       table
@@ -136,6 +144,7 @@ exports.up = knex => {
       // Creating property: type
       table
       .enu('type', ['RENT','RESERVE','RETURN'])
+      .notNullable()
     })
 };
 

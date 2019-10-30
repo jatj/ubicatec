@@ -75,5 +75,6 @@ tscommand-*.tmp.txt
 !**/*seed.js
 !res/*.js
 !migrations/*.js
+!seeds/*.js
 .env.dev
 NOTES

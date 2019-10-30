@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { container } from "tsyringe";
 import { API } from '@conectasystems/tools';
 import { UsersService } from '../services/users';
 import { UbicaTecAPIModels } from '../models';
@@ -16,12 +18,14 @@ export const listUsers: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
     var orderMode = req.swagger.params['orderMode'].value;
     var pageIndex = req.swagger.params['pageIndex'].value;
     var pageSize = req.swagger.params['pageSize'].value;
-    var email = req.swagger.params['email'].value;
+    var studentNumber = req.swagger.params['studentNumber'].value;
+    var fbUserId = req.swagger.params['fbUserId'].value;
     var lastname = req.swagger.params['lastname'].value;
     var name = req.swagger.params['name'].value;
-    var inactive = req.swagger.params['inactive'].value;
     try{
-        let result = await UsersService.listUsers(req, orderBy, orderMode, pageIndex, pageSize, email, lastname, name, inactive);
+        const usersService = container.resolve(UsersService);
+        usersService.init(req);
+        let result = await usersService.listUsers(orderBy, orderMode, pageIndex, pageSize, studentNumber, fbUserId, lastname, name);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -33,9 +37,10 @@ export const listUsers: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
  **/
 export const getUser: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var idUser = req.swagger.params['idUser'].value;
-    var inactive = req.swagger.params['inactive'].value;
     try{
-        let result = await UsersService.getUser(req, idUser, inactive);
+        const usersService = container.resolve(UsersService);
+        usersService.init(req);
+        let result = await usersService.getUser(idUser);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -48,7 +53,9 @@ export const getUser: API.NextHandleFunction<UbicaTecAPIModels> = async (req, re
 export const createUser: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var newUser = req.swagger.params['newUser'].value;
     try{
-        let result = await UsersService.createUser(req, newUser);
+        const usersService = container.resolve(UsersService);
+        usersService.init(req);
+        let result = await usersService.createUser(newUser);
         res.respond(result);
     }catch (error) {
         next(error);
