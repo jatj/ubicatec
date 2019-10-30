@@ -30,6 +30,23 @@ export const listPlaces: API.NextHandleFunction<UbicaTecAPIModels> = async (req,
     }
 }
 /**
+ * get the place that contains the lat and lng point
+ * This returns the place that contains the lat and lng point if no place contains that point it will throw an exception
+ * 
+ **/
+export const findPlace: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
+    var lat = req.swagger.params['lat'].value;
+    var lng = req.swagger.params['lng'].value;
+    try{
+        const placesService = container.resolve(PlacesService);
+        placesService.init(req);
+        let result = await placesService.findPlace(lat, lng);
+        res.respond(result);
+    }catch (error) {
+        next(error);
+    }
+}
+/**
  * gets an specific place
  * This will return the place that matches with the provided [idPlace]
  **/

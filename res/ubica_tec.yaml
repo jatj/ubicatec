@@ -228,6 +228,34 @@ paths:
           $ref: '#/responses/NoAccessResponse'
         default:
           $ref: '#/responses/ErrorResponse'
+  /place/{lat}/{lng}:
+    get:
+      tags:
+      - places
+      summary: get the place that contains the lat and lng point
+      description: | 
+        This returns the place that contains the lat and lng point if no place contains that point it will throw an exception
+      operationId: findPlace
+      parameters:
+      - in: path
+        name: lat
+        type: number
+        required: true
+        description: latitude of the coordinate to find the place
+      - in: path
+        name: lng
+        type: number
+        required: true
+        description: longitude of the coordinate to find the place
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Place'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
   /place/{idPlace}:
     get:
       tags:
