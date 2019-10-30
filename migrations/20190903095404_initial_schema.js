@@ -54,7 +54,7 @@ exports.up = knex => {
       .comment('The description of the place')
       // Creating property: fence
       table
-      .string('fence', 255)
+      .jsonb('fence')
       .notNullable()
       .unique()
       .comment('The geo fence of the place')

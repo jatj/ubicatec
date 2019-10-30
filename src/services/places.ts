@@ -34,16 +34,12 @@ export class PlacesService {
     **/
     async listPlaces (orderBy?: 'name' | 'nearby', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, nearbyLng?: number, nearbyLat?: number, name?: string) {
         try{
-            var places;
-            if (pageIndex != null && pageSize != null){
-                places = await this.req.query<Place>(Place)
-                .skipUndefined()
-                .page(pageIndex, pageSize);
-                return places;
-            }
-            places = await this.req.query<Place>(Place)
-            .skipUndefined()
-            return places;
+            let query = this.req.query<Place>(Place).skipUndefined();
+            query = (name) ? query.where('name', 'like', `%${name}%`) : query;
+            // TODO: Add filters for nearby lat lng
+            query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
+            query = (!orderBy) ? query.orderBy('idPlace', orderMode || API.Defaults.orderMode) : query;
+            return Utils.collectionType<Place>(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize), Place);
         }catch(error){
             throw error;
         }
@@ -58,7 +54,10 @@ export class PlacesService {
     **/
     async getPlace (idPlace: number) {
         try{
-            const place = await this.req.query<Place>(Place).findById(idPlace)
+            let query = this.req.query<Place>(Place).skipUndefined();
+            const place = await query.findById(idPlace);
+            if (place == null)
+                throw new API.Error(API.Response.NOT_FOUND, 'El lugar no existe');
             return place;
         }catch(error){
             throw error;

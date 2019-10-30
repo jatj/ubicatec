@@ -17,12 +17,11 @@ export const listRooms: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
     var pageIndex = req.swagger.params['pageIndex'].value;
     var pageSize = req.swagger.params['pageSize'].value;
     var roomStatus = req.swagger.params['roomStatus'].value;
-    var category = req.swagger.params['category'].value;
     var name = req.swagger.params['name'].value;
     try{
         const roomsService = container.resolve(RoomsService);
         roomsService.init(req);
-        let result = await roomsService.listRooms(orderBy, orderMode, pageIndex, pageSize, roomStatus, category, name);
+        let result = await roomsService.listRooms(orderBy, orderMode, pageIndex, pageSize, roomStatus, name);
         res.respond(result);
     }catch (error) {
         next(error);

@@ -31,18 +31,14 @@ export class RoomsService {
     * @param { string } name name for filter the rooms (optional)
     * @returns { Promise<> }
     **/
-    async listRooms (orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, roomStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
+    async listRooms (orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, roomStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', name?: string) {
         try{
-            var rooms;
-            if (pageIndex != null && pageSize != null){
-                rooms = await this.req.query<Room>(Room)
-                .skipUndefined()
-                .page(pageIndex, pageSize);
-                return rooms;
-            }
-            rooms = await this.req.query<Room>(Room)
-            .skipUndefined()
-            return rooms;
+            let query = this.req.query<Room>(Room).skipUndefined();
+            query = (name) ? query.where('name', 'like', `%${name}%`) : query;
+            query = (roomStatus) ? query : query.where({ roomStatus });
+            query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
+            query = (!orderBy) ? query.orderBy('idRoom', orderMode || API.Defaults.orderMode) : query;
+            return Utils.collectionType<Room>(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize), Room);
         }catch(error){
             throw error;
         }
@@ -57,7 +53,10 @@ export class RoomsService {
     **/
     async getRoom (idRoom: number) {
         try{
-            const room = await this.req.query<Room>(Room).findById(idRoom)
+            let query = this.req.query<Room>(Room).skipUndefined();
+            const room = await query.findById(idRoom);
+            if (room == null)
+                throw new API.Error(API.Response.NOT_FOUND, 'La sala no existe');
             return room;
         }catch(error){
             throw error;

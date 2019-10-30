@@ -13,7 +13,7 @@ export interface IPlace {
     idPlace: number;
     name: string;
     description?: string;
-    fence: string;
+    fence: any;
 }
 
 
@@ -21,7 +21,7 @@ export default class Place extends BaseModel implements IPlace {
     idPlace: number;
     name: string;
     description?: string;
-    fence: string;
+    fence: any;
 
     constructor(obj?: IPlace){
         super()
@@ -51,7 +51,7 @@ export default class Place extends BaseModel implements IPlace {
                 type: ['string', null],
             },
             fence: {
-                type: 'string',
+                type: 'jsonb',
             },
         }
     };

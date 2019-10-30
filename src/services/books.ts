@@ -33,16 +33,13 @@ export class BooksService {
     **/
     async listBooks (orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, bookStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
         try{
-            var books;
-            if (pageIndex != null && pageSize != null){
-                books = await this.req.query<Book>(Book)
-                .skipUndefined()
-                .page(pageIndex, pageSize);
-                return books;
-            }
-            books = await this.req.query<Book>(Book)
-            .skipUndefined()
-            return books;
+            let query = this.req.query<Book>(Book).skipUndefined();
+            query = (name) ? query.where('name', 'like', `%${name}%`) : query;
+            query = (bookStatus) ? query : query.where({ bookStatus });
+            query = (category) ? query.where('category', 'like', `%${category}%`) : query;
+            query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
+            query = (!orderBy) ? query.orderBy('idBook', orderMode || API.Defaults.orderMode) : query;
+            return Utils.collectionType<Book>(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize), Book);
         }catch(error){
             throw error;
         }
@@ -57,7 +54,10 @@ export class BooksService {
     **/
     async getBook (idBook: number) {
         try{
-            const book = await this.req.query<Book>(Book).findById(idBook)
+            let query = this.req.query<Book>(Book).skipUndefined();
+            const book = await query.findById(idBook);
+            if (book == null)
+                throw new API.Error(API.Response.NOT_FOUND, 'El libro no existe');
             return book;
         }catch(error){
             throw error;

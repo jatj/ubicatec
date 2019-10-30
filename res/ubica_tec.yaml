@@ -354,10 +354,6 @@ paths:
         type: string
         description: name for filter the rooms
       - in: query
-        name: category
-        type: string
-        description: category for filter the rooms
-      - in: query
         name: roomStatus
         type: string
         description: roomStatus for filter the rooms
