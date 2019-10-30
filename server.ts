@@ -6,14 +6,21 @@ import * as fs from 'fs';
 import * as http from 'http';
 import { Utils, Logger, API, DB } from '@conectasystems/tools';
 import { UbicaTecAPIModels } from './src/models';
-import { development } from './knexfile';
+import { development, production } from './knexfile';
 
 async function InitializeServer() {
     const app = express();
     const serverPort = process.env.PORT;
 
     // Set manager configuration
-    DB.Manager.getInstance(null, development);
+    switch(process.env.DB_ENV as DB.Env){
+        case 'DEVELOPMENT':
+                DB.Manager.getInstance(null, development);
+            break;
+        case 'PRODUCTION':
+                DB.Manager.getInstance(null, production);
+            break;
+    }
 
     // swaggerRouter configuration
     var options = {

@@ -5,10 +5,16 @@ export var development = function(){
     return {
         client: 'pg',
         useNullAsDefault: true,
-        connection: `postgresql://localhost/${process.env.DB_NAME}`
+        connection: `postgresql://${process.env.DB_HOST}/${process.env.DB_NAME}`
     };
 }();
 
 export var testing = DB.Manager.defaultTesting();
 
-export var production = DB.Manager.defaultProduction();     
+export var production = function(){
+    return {
+        client: 'pg',
+        useNullAsDefault: true,
+        connection: `postgresql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${process.env.DB_NAME}`
+    };
+}();

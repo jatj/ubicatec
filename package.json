@@ -18,7 +18,9 @@
     "test": "mocha -r source-map-support/register ./test/**/*.test.js",
     "coverage": "nyc mocha ./test/**/*.test.js --reporter mocha-junit-reporter --reporter-options mochaFile=./coverage/test-results.xml",
     "show-coverage": "open coverage/index.html",
-    "postinstall": "node res/patch-objection-db-error.js && node res/patch-kubernetes-client.js"
+    "postinstall": "node res/patch-objection-db-error.js && node res/patch-kubernetes-client.js",
+    "buildContainer": "docker build -t jabraham9719/ubicatec:latest .",
+    "pushContainer": "docker push jabraham9719/ubicatec:latest"
   },
   "nyc": {
     "all": false,
