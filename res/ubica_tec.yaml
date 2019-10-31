@@ -203,13 +203,9 @@ paths:
         type: string
         description: name for filter the places
       - in: query
-        name: nearbyLat
-        type: number
-        description: latitude of the coordinate to get places nearby
-      - in: query
-        name: nearbyLng
-        type: number
-        description: longitude of the coordinate to get places nearby
+        name: nearby
+        type: string
+        description: google maps link to the location
       - $ref: '#/parameters/pageSize'
       - $ref: '#/parameters/pageIndex'
       - $ref: '#/parameters/orderMode'
@@ -220,6 +216,10 @@ paths:
         enum:
           - name
           - nearby
+      - in: query
+        name: restrooms
+        type: boolean
+        description: If it will show only restrooms
       responses:
         200:
           description: successful operation
@@ -229,7 +229,7 @@ paths:
           $ref: '#/responses/NoAccessResponse'
         default:
           $ref: '#/responses/ErrorResponse'
-  /place/{lat}/{lng}:
+  /place/location/{location}:
     get:
       tags:
       - places
@@ -239,15 +239,10 @@ paths:
       operationId: findPlace
       parameters:
       - in: path
-        name: lat
-        type: number
+        name: location
+        type: string
         required: true
-        description: latitude of the coordinate to find the place
-      - in: path
-        name: lng
-        type: number
-        required: true
-        description: longitude of the coordinate to find the place
+        description: google maps link to the location
       responses:
         200:
           description: successful operation
@@ -605,6 +600,11 @@ definitions:
         x-name: identificador de facebook
         x-required: true
         x-unique: true
+      program:
+        type: string
+        description: The program of the user
+        example: ITC
+        x-name: programa
 
   UserCollection:
     type: object
@@ -654,6 +654,24 @@ definitions:
         x-name: fence
         x-required: true
         x-unique: true
+      image:
+        type: string
+        description: The link of the image 
+      isRestroom:
+        type: boolean
+        description: Whether or not the place is a restroom
+      centerLat:
+        type: number
+        description: Center point of the place
+        x-ignore: true
+      centerLng:
+        type: number
+        description: Center point of the place
+        x-ignore: true
+      distanceTo:
+        type: number
+        description: Actual distance to the place
+        x-ignore: true
 
   PlaceCollection:
     type: object
@@ -702,6 +720,9 @@ definitions:
         description: The code of the book
         example: MOR.AE.1997.C2
         x-name: código
+      image:
+        type: string
+        description: The link of the image 
       status:
         type: string
         enum:
@@ -750,6 +771,9 @@ definitions:
         example: 4
         x-required: true
         x-name: número
+      image:
+        type: string
+        description: The link of the image 
       status:
         type: string
         enum:

@@ -31,6 +31,10 @@ exports.up = knex => {
       .notNullable()
       .unique()
       .comment('The facebook user id, to link each facebook user to a student')
+      // Creating property: program
+      table
+      .string('program', 255)
+      .comment('The program of the user')
     })
     /**
     * =================================
@@ -58,6 +62,14 @@ exports.up = knex => {
       .notNullable()
       .unique()
       .comment('The geo fence of the place')
+      // Creating property: image
+      table
+      .string('image', 255)
+      .comment('The link of the image')
+      // Creating property: isRestroom
+      table
+      .boolean('isRestroom')
+      .comment('Whether or not the place is a restroom')
     })
     /**
     * =================================
@@ -83,6 +95,10 @@ exports.up = knex => {
       table
       .string('code', 255)
       .comment('The code of the book')
+      // Creating property: image
+      table
+      .string('image', 255)
+      .comment('The link of the image')
       // Creating property: status
       table
       .enu('status', ['AVAILABLE','RENTED','RESERVED'])
@@ -103,6 +119,10 @@ exports.up = knex => {
       .integer('number')
       .notNullable()
       .comment('The number of the room')
+      // Creating property: image
+      table
+      .string('image', 255)
+      .comment('The link of the image')
       // Creating property: status
       table
       .enu('status', ['AVAILABLE','RENTED','RESERVED'])

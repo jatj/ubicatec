@@ -13,17 +13,17 @@ import { UbicaTecAPIModels } from '../models';
  * 
  **/
 export const listPlaces: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
+    var restrooms = req.swagger.params['restrooms'].value;
     var orderBy = req.swagger.params['orderBy'].value;
     var orderMode = req.swagger.params['orderMode'].value;
     var pageIndex = req.swagger.params['pageIndex'].value;
     var pageSize = req.swagger.params['pageSize'].value;
-    var nearbyLng = req.swagger.params['nearbyLng'].value;
-    var nearbyLat = req.swagger.params['nearbyLat'].value;
+    var nearby = req.swagger.params['nearby'].value;
     var name = req.swagger.params['name'].value;
     try{
         const placesService = container.resolve(PlacesService);
         placesService.init(req);
-        let result = await placesService.listPlaces(orderBy, orderMode, pageIndex, pageSize, nearbyLng, nearbyLat, name);
+        let result = await placesService.listPlaces(restrooms, orderBy, orderMode, pageIndex, pageSize, nearby, name);
         res.respond(result);
     }catch (error) {
         next(error);
@@ -35,12 +35,11 @@ export const listPlaces: API.NextHandleFunction<UbicaTecAPIModels> = async (req,
  * 
  **/
 export const findPlace: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
-    var lat = req.swagger.params['lat'].value;
-    var lng = req.swagger.params['lng'].value;
+    var location = req.swagger.params['location'].value;
     try{
         const placesService = container.resolve(PlacesService);
         placesService.init(req);
-        let result = await placesService.findPlace(lat, lng);
+        let result = await placesService.findPlace(location);
         res.respond(result);
     }catch (error) {
         next(error);

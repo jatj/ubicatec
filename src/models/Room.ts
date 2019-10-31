@@ -12,7 +12,8 @@ import { BaseModel } from '@conectasystems/tools/DB';
 export interface IRoom { 
     idRoom: number;
     number: number;
-    status?: IRoom.StatusEnum;
+    image?: string;
+    status: IRoom.StatusEnum;
 }
 
 export namespace IRoom {
@@ -27,13 +28,15 @@ export namespace IRoom {
 export default class Room extends BaseModel implements IRoom { 
     idRoom: number;
     number: number;
-    status?: IRoom.StatusEnum;
+    image?: string;
+    status: IRoom.StatusEnum;
 
     constructor(obj?: IRoom){
         super()
         if(obj == null) return;
         this.idRoom = obj.idRoom;
         this.number = obj.number;
+        this.image = obj.image;
         this.status = obj.status;
     }
 
@@ -43,7 +46,7 @@ export default class Room extends BaseModel implements IRoom {
 
     static jsonSchema = {
         type: 'object',
-        required: ['module', 'level', 'fkBook', 'idRoom', 'number'],
+        required: ['status', 'number', 'idRoom'],
 
         properties: {
             idRoom: {
@@ -52,8 +55,11 @@ export default class Room extends BaseModel implements IRoom {
             number: {
                 type: 'integer',
             },
-            status: {
+            image: {
                 type: ['string', null],
+            },
+            status: {
+                type: 'string',
             },
         }
     };

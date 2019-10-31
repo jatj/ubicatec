@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels, Place } from '../models';
+import { UbicaTecAPIModels, Place, PlaceCollection } from '../models';
 
 export type Point = {
     type: string
@@ -36,18 +36,18 @@ export class PlacesService {
     * [pageIndex] chunk of places. If paging parameters are not the default values are pageIndex = 0, pageSize = 100
     * 
     * @param { API.IServerRequest<UbicaTecAPIModels> } req request object from the client
+    * @param { boolean } restrooms If it will show only restrooms (optional)
     * @param { 'name' | 'nearby' } orderBy Field to order by the query (optional)
     * @param { 'ASC' | 'DESC' } orderMode Mode to order elements, orderBy has to be specified default is set to asc (optional)
     * @param { number } pageIndex Index of the page to be withdrawn by the API (optional)
     * @param { number } pageSize Size of the chunks of data requested (optional)
-    * @param { number } nearbyLng longitude of the coordinate to get places nearby (optional)
-    * @param { number } nearbyLat latitude of the coordinate to get places nearby (optional)
+    * @param { string } nearby google maps link to the location (optional)
     * @param { string } name name for filter the places (optional)
     * @returns { Promise<> }
     **/
-    async listPlaces(orderBy?: 'name' | 'nearby', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, nearbyLng?: number, nearbyLat?: number, name?: string) {
+    async listPlaces(restrooms?: boolean, orderBy?: 'name' | 'nearby', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, nearby?: string, name?: string) {
         try {
-            let nearbyPoint = this.getPoint(nearbyLat, nearbyLng);
+            let nearbyPoint = this.getPointFromURL(nearby);
             if (nearbyPoint != null) {
                 // Filter nearby places
                 let result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distance FROM "Place" ORDER BY distance`);
@@ -59,9 +59,11 @@ export class PlacesService {
             } else {
                 let query = this.req.query<Place>(Place).skipUndefined();
                 query = (name) ? query.where('name', 'like', `%${name}%`) : query;
+                query = (restrooms) ? query.where({isRestrooms: true}) : query;
                 query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
                 query = (!orderBy) ? query.orderBy('idPlace', orderMode || API.Defaults.orderMode) : query;
-                return Utils.collectionType<Place>(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize), Place);
+                let collection: PlaceCollection = new PlaceCollection(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize));
+                return collection.toView();
             }
         } catch (error) {
             throw error;
@@ -73,13 +75,12 @@ export class PlacesService {
     * This returns the place that contains the lat and lng point if no place contains that point it will throw an exception
     * 
     * @param { API.IServerRequest<UbicaTecAPIModels> } req request object from the client
-    * @param { number } lat latitude of the coordinate to find the place 
-    * @param { number } lng longitude of the coordinate to find the place 
+    * @param { string } location google maps link to the location 
     * @returns { Promise<> }
     **/
-    async findPlace(lat: number, lng: number) {
+    async findPlace(location: string) {
         try {
-            let point = this.getPoint(lat, lng);
+            let point = this.getPointFromURL(location);
             if (point == null) 
                 throw new API.Error(API.Response.BAD_REQUEST, 'La ubicación es requerida');
 
@@ -116,6 +117,8 @@ export class PlacesService {
         }
     }
 
+    // -------- HELPERS
+
     getPoint(lat: number, lng: number): Point {
         if (lat == null || lng == null) {
             return null;
@@ -124,6 +127,14 @@ export class PlacesService {
             type: 'Point',
             coordinates: [lng, lat]
         }
+    }
+
+    getPointFromURL(url): Point{
+        let lat = url.match(/\/([\d\.]+),/gi)[0];
+        lat = lat.substr(1,lat.length-2);
+        let lng = url.match(/[,]([-\d \.]+)/gi)[0];
+        lng = lng.substr(1);
+        return this.getPoint(parseFloat(lat), parseFloat(lng));
     }
 
 }

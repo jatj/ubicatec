@@ -15,6 +15,7 @@ export interface IUser {
     lastname?: string;
     studentNumber: string;
     fbUserId: string;
+    program?: string;
 }
 
 
@@ -24,6 +25,7 @@ export default class User extends BaseModel implements IUser {
     lastname?: string;
     studentNumber: string;
     fbUserId: string;
+    program?: string;
 
     constructor(obj?: IUser){
         super()
@@ -33,6 +35,7 @@ export default class User extends BaseModel implements IUser {
         this.lastname = obj.lastname;
         this.studentNumber = obj.studentNumber;
         this.fbUserId = obj.fbUserId;
+        this.program = obj.program;
     }
 
     static tableName = 'User';
@@ -58,6 +61,9 @@ export default class User extends BaseModel implements IUser {
             },
             fbUserId: {
                 type: 'string',
+            },
+            program: {
+                type: ['string', null],
             },
         }
     };

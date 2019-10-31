@@ -9,27 +9,42 @@
 import { Model, ValidationError } from 'objection';
 import { BaseModel } from '@conectasystems/tools/DB';
 
-export interface IPlace { 
+export interface IPlace {
     idPlace: number;
     name: string;
     description?: string;
     fence: any;
+    image?: string;
+    isRestroom?: boolean;
+    centerLat?: number;
+    centerLng?: number;
+    distanceTo?: number;
 }
 
 
-export default class Place extends BaseModel implements IPlace { 
+export default class Place extends BaseModel implements IPlace {
     idPlace: number;
     name: string;
     description?: string;
     fence: any;
+    image?: string;
+    isRestroom?: boolean;
+    centerLat?: number;
+    centerLng?: number;
+    distanceTo?: number;
 
-    constructor(obj?: IPlace){
+    constructor(obj?: IPlace) {
         super()
-        if(obj == null) return;
+        if (obj == null) return;
         this.idPlace = obj.idPlace;
         this.name = obj.name;
         this.description = obj.description;
         this.fence = obj.fence;
+        this.image = obj.image;
+        this.isRestroom = obj.isRestroom;
+        this.centerLat = obj.centerLat;
+        this.centerLng = obj.centerLng;
+        this.distanceTo = obj.distanceTo;
     }
 
     static tableName = 'Place';
@@ -52,6 +67,12 @@ export default class Place extends BaseModel implements IPlace {
             },
             fence: {
                 type: 'jsonb',
+            },
+            image: {
+                type: ['string', null],
+            },
+            isRestroom: {
+                type: ['boolean', null],
             },
         }
     };
