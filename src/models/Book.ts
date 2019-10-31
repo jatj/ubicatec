@@ -15,6 +15,7 @@ export interface IBook {
     description?: string;
     code?: string;
     status?: IBook.StatusEnum;
+    image?: string;
 }
 
 export namespace IBook {
@@ -32,6 +33,7 @@ export default class Book extends BaseModel implements IBook {
     description?: string;
     code?: string;
     status?: IBook.StatusEnum;
+    image?: string;
 
     constructor(obj?: IBook){
         super()
@@ -41,6 +43,7 @@ export default class Book extends BaseModel implements IBook {
         this.description = obj.description;
         this.code = obj.code;
         this.status = obj.status;
+        this.image = obj.image;
     }
 
     static tableName = 'Book';
@@ -65,6 +68,9 @@ export default class Book extends BaseModel implements IBook {
                 type: ['string', null],
             },
             status: {
+                type: ['string', null],
+            },
+            image: {
                 type: ['string', null],
             },
         }

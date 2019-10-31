@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels, Book } from '../models';
+import { UbicaTecAPIModels, Book, BookCollection } from '../models';
 
 /**
  * Provides endpoints to search and get and search books
@@ -39,7 +39,7 @@ export class BooksService {
             query = (category) ? query.where('category', 'like', `%${category}%`) : query;
             query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
             query = (!orderBy) ? query.orderBy('idBook', orderMode || API.Defaults.orderMode) : query;
-            return Utils.collectionType<Book>(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize), Book);
+            return new BookCollection(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize)).toView();
         }catch(error){
             throw error;
         }

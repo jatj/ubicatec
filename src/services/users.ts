@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { API, Types, Utils } from '@conectasystems/tools';
+import { API, Types, Utils, Logger } from '@conectasystems/tools';
 import { UbicaTecAPIModels, User } from '../models';
 import { transaction } from "objection";
 
@@ -34,7 +34,7 @@ export class UsersService {
     * @param { boolean } inactive whether or not include inactive users (optional)
     * @returns { Promise<> }
     **/
-    async listUsers (orderBy?: 'name' | 'lastname' | 'email' | 'username', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, studentNumber?: string, fbUserId?: string, lastname?: string, name?: string) {
+    async listUsers(orderBy?: 'name' | 'lastname' | 'email' | 'username', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, studentNumber?: string, fbUserId?: string, lastname?: string, name?: string) {
         try {
             let query = this.req.query<User>(User).skipUndefined();
             query = (name) ? query.where('name', 'like', `%${name}%`) : query;
@@ -56,14 +56,14 @@ export class UsersService {
     * @param { number } idUser idUser of the searched user 
     * @returns { Promise<> }
     **/
-    async getUser (idUser: number) {
-        try{
+    async getUser(idUser: number) {
+        try {
             let query = this.req.query<User>(User).skipUndefined();
             const user = await query.findById(idUser);
             if (user == null)
                 throw new API.Error(API.Response.NOT_FOUND, 'El usuario no existe');
             return user;
-        }catch(error){
+        } catch (error) {
             throw error;
         }
     }
@@ -75,15 +75,69 @@ export class UsersService {
     * @param { User } newUser User necessary data to create a new user (optional)
     * @returns { Promise<> }
     **/
-    async createUser (newUser?: User) {
+    async createUser(newUser?: User) {
         let trx = await transaction.start(this.req.tools.models.User.knex());
         try {
-
+            let fbUser = await this.req.query<User>(User, trx).findOne({ fbUserId: newUser.fbUserId });
+            if (fbUser != null) {
+                return {
+                    messages: [
+                        {
+                            text: `Ya existes en nuestro sistema, estas registrado como ${fbUser.name} ${fbUser.lastname}`,
+                            quick_replies: [
+                                {
+                                    title: 'Ir al menu',
+                                    block_names: ['Menu']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+            let validStudentNumber = newUser.studentNumber.match(/[AL](\d{8})/gi)
+            if (!validStudentNumber || validStudentNumber.length <= 0) {
+                return {
+                    messages: [
+                        {
+                            text: `La matricula ${newUser.studentNumber} tiene un formato invalido, intenta de nuevo`,
+                            quick_replies: [
+                                {
+                                    title: 'Intentar de nuevo',
+                                    block_names: ['Registro usuario']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+            let studentNumberUser = await this.req.query<User>(User, trx).findOne({ studentNumber: newUser.studentNumber });
+            if (studentNumberUser != null) {
+                return {
+                    messages: [
+                        {
+                            text: `Ya existes en nuestro sistema, estas registrado como ${studentNumberUser.name} ${studentNumberUser.lastname}`,
+                            quick_replies: [
+                                {
+                                    title: 'Ir al menu',
+                                    block_names: ['Menu']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
             let user = await this.req.query<User>(User, trx).insertAndFetch(newUser);
 
             await trx.commit();
-            return new API.Success(API.Response.OK, 'Se ha creado el usuario', { user: new User(user) });
+            return {
+                messages: [
+                    {
+                        text: `Gracias por registrarte ${user.name} ${user.lastname}`
+                    }
+                ]
+            }
         } catch (error) {
+            Logger.error(error);
             await trx.rollback();
             throw error;
         }

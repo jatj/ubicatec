@@ -58,7 +58,7 @@ export class PlacesView {
         for (let place of places) {
             let placeView = {
                 title: place.name,
-                image_url: 'https://www.gstatic.com/webp/gallery/1.sm.jpg',
+                image_url: place.image,
                 subtitle: place.description,
                 buttons: [
                     {

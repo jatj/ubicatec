@@ -125,7 +125,8 @@ exports.seed = function (knex, Promise) {
                      ]
                   ]
                ]
-            })
+            }),
+            image: 'https://fastly.4sqi.net/img/general/600x600/51292101_Osg7C50FWQVewDc4rqqAEOOrfSIVGg9LDIU0PX6DzM8.jpg'
          },
          {
             idPlace: 5, name: 'Punto Azul', description: 'Punto Azul', fence: JSON.stringify({

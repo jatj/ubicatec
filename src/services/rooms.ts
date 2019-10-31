@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels, Room } from '../models';
+import { UbicaTecAPIModels, Room, RoomCollection } from '../models';
 
 /**
  * Provides endpoints to search and get and search library rooms
@@ -38,7 +38,7 @@ export class RoomsService {
             query = (roomStatus) ? query : query.where({ roomStatus });
             query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
             query = (!orderBy) ? query.orderBy('idRoom', orderMode || API.Defaults.orderMode) : query;
-            return Utils.collectionType<Room>(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize), Room);
+            return new RoomCollection(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize)).toView();
         }catch(error){
             throw error;
         }

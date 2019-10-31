@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { API, Types, Utils } from '@conectasystems/tools';
+import { API, Types, Utils, Logger } from '@conectasystems/tools';
 import { UbicaTecAPIModels, Place, PlaceCollection } from '../models';
 
 export type Point = {
@@ -50,22 +50,27 @@ export class PlacesService {
             let nearbyPoint = this.getPointFromURL(nearby);
             if (nearbyPoint != null) {
                 // Filter nearby places
-                let result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distance FROM "Place" ORDER BY distance`);
+                let result: any;
+                if(restrooms){
+                    result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distance FROM "Place" WHERE "isRestroom" = true ORDER BY distance LIMIT 10`);
+                }else {
+                    result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distance FROM "Place" ORDER BY distance LIMIT 10`);
+                }
                 let places: Array<Place> = [];
                 for (let place of result.rows) {
                     places.push(place);
                 }
-                return Utils.collectionType<Place>({ results: places, total: places.length }, Place);
+                return new PlaceCollection({ results: places, total: places.length }).toView();
             } else {
                 let query = this.req.query<Place>(Place).skipUndefined();
                 query = (name) ? query.where('name', 'like', `%${name}%`) : query;
-                query = (restrooms) ? query.where({isRestrooms: true}) : query;
+                query = (restrooms) ? query.where({isRestroom: true}) : query;
                 query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
                 query = (!orderBy) ? query.orderBy('idPlace', orderMode || API.Defaults.orderMode) : query;
-                let collection: PlaceCollection = new PlaceCollection(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize));
-                return collection.toView();
+                return new PlaceCollection(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize)).toView();
             }
         } catch (error) {
+            Logger.error(error);
             throw error;
         }
     }
@@ -130,9 +135,12 @@ export class PlacesService {
     }
 
     getPointFromURL(url): Point{
+        if(url == null) return null;
         let lat = url.match(/\/([\d\.]+),/gi)[0];
+        if(lat == null) return null;
         lat = lat.substr(1,lat.length-2);
         let lng = url.match(/[,]([-\d \.]+)/gi)[0];
+        if(lng == null) return null;
         lng = lng.substr(1);
         return this.getPoint(parseFloat(lat), parseFloat(lng));
     }
