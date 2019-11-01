@@ -7,8 +7,10 @@ import * as http from 'http';
 import { Utils, Logger, API, DB } from '@conectasystems/tools';
 import { UbicaTecAPIModels } from './src/models';
 import { development, production } from './knexfile';
+import { OcrService } from './src/utils/ocrService';
 
 async function InitializeServer() {
+    await OcrService.init();
     const app = express();
     const serverPort = process.env.PORT;
 

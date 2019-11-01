@@ -152,30 +152,44 @@ export class UsersService {
     **/
     async parseUser(credential?: string) {
         try {
-            let parsedCredential = await OcrService.scanCredential(credential);
-            console.log(parsedCredential);
-            return {
-                messages: [
-                    {
-                        text: `Confirma tus datos:\n nombre completo: ${parsedCredential.name} \n matrícula: ${parsedCredential.studentNumber} \n programa: ${parsedCredential.program}`,
-                        quick_replies: [
-                            {
-                                title: 'Si, registrar',
-                                set_attributes: {
-                                    studentNumber: parsedCredential.studentNumber,
-                                    studentName: parsedCredential.name,
-                                    studentProgram: parsedCredential.program
+            if (OcrService.results.has(credential)) {
+                let parsedCredential = await OcrService.scanCredential(credential);
+                console.log(parsedCredential);
+                return {
+                    messages: [
+                        {
+                            text: `Confirma tus datos:\n nombre completo: ${parsedCredential.name} \n matrícula: ${parsedCredential.studentNumber} \n programa: ${parsedCredential.program}`,
+                            quick_replies: [
+                                {
+                                    title: 'Si, registrar',
+                                    set_attributes: {
+                                        studentNumber: parsedCredential.studentNumber,
+                                        studentName: parsedCredential.name,
+                                        studentProgram: parsedCredential.program
+                                    },
+                                    block_names: ['Confirma registro']
                                 },
-                                block_names: ['Confirma registro']
-                            },
-                            {
-                                title: 'No',
-                                block_names: ['Registro usuario']
-                            }
-                        ]
-                    }
-                ]
+                                {
+                                    title: 'No',
+                                    block_names: ['Registro usuario']
+                                }
+                            ]
+                        }
+                    ]
+                }
+            } else {
+                OcrService.scanCredential(credential, (link) => {
+                    // Broadcast to chatbot
+                });
+                return {
+                    messages: [
+                        {
+                            text: `Estamos procesando tu credencial por favor espera...`,
+                        }
+                    ]
+                }
             }
+
         } catch (error) {
             Logger.error(error);
             throw error;

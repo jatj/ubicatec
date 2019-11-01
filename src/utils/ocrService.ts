@@ -10,23 +10,25 @@ import { createWorker } from 'tesseract.js';
  */
 // @injectable()
 export class OcrService {
-    constructor() { }
+    public static worker;
+    public static async init(){
+        this.worker = createWorker();
 
+        await this.worker.load();
+        await this.worker.loadLanguage('spa');
+        await this.worker.initialize('spa');
+        return this.worker;
+    }
+    public static async terminate(){
+        await this.worker.terminate();
+    }
     /**
      * Extracts text from an image
      * @param imageUrl URL of the image to be analyzed
      */
     public static async textFromImage(imageUrl: string): Promise<string> {
-        const worker = createWorker();
-
-        await worker.load();
-        await worker.loadLanguage('spa');
-        await worker.initialize('spa');
-        let [buff, filename] = await this.applyFilter(imageUrl);
-        const { data: { text } } = await worker.recognize(buff);
-        console.log(text);
-        await worker.terminate();
-        fs.unlinkSync(filename);
+        // const { data: { text } } = await this.worker.recognize(await this.applyFilter(imageUrl));
+        const { data: { text } } = await this.worker.recognize(imageUrl);
         return text;
     }
 
@@ -38,19 +40,13 @@ export class OcrService {
             });
             let buff = await imageGrayScale(filename, {
                 algorithm: function (r, g, b, a) {
-                    let averageDecomposition = (Math.max(r, g, b) + Math.max(r, g, b)) / 2;
-                    let maxDecomposition = Math.max(r, g, b);
-                    let minDecomposition = Math.min(r, g, b);
-                    let average = (r + g + b) / 3;
-                    let luminosity = 0.21 * r + 0.72 * g + 0.07 * b;
-                    let trueBW = (average > 125) ? 255 : 0;
-                    return averageDecomposition;
+                    return ( Math.max(r, g, b) + Math.min(r, g, b) ) / 2;
                 },
                 bufferMode: true
             });
             fs.unlinkSync(filename);
             fs.writeFileSync(filename, buff);
-            return [buff, filename];
+            return buff;
         } catch (error) {
             throw error;
         }
@@ -61,41 +57,49 @@ export class OcrService {
      * Extracts useful data from a Tec credential
      * @param imageUrl URL of the credential to be analyzed
      */
-    public static async scanCredential(imageUrl: string): Promise<CredentialDetails> {
+    public static async scanCredential(imageUrl: string, callback?: any): Promise<CredentialDetails> {
+        if(this.results.has(imageUrl)){
+            let result = this.results.get(imageUrl);
+            this.results.delete(imageUrl);
+            return result
+        }
         let rawText: string;
         let credentialDetails: CredentialDetails = new CredentialDetails();
-        let matriculaRegex: RegExp = /[AL](\d{8})/gi;
-        let nombreRegex: RegExp = /^([a-zA-Z\s]+)/g;
-        let carreraRegex: RegExp = /^[a-zA-Z]{3}/g;
-        let matriculaMatch;
+        let studentNumberRegex: RegExp = /[AL](\d{8})/gi;
+        let nameRegex: RegExp = /^([a-zA-Z\s]+)/g;
+        let programRegex: RegExp = /^[a-zA-Z]{3}/g;
+        let studentNumberMatch;
         let lines: string[];
 
-        rawText = await this.textFromImage(imageUrl);
+        rawText = await OcrService.textFromImage(imageUrl);
 
         // Split text in lines
         lines = rawText.split(/\r?\n/);
 
         for (let i = 0; i < lines.length; i++) {
-            matriculaMatch = matriculaRegex.exec(lines[i]);
+            studentNumberMatch = studentNumberRegex.exec(lines[i]);
 
-            if (!matriculaMatch) {
+            if (!studentNumberMatch) {
                 continue;
             }
 
-            credentialDetails.studentNumber = lines[i].match(matriculaRegex).toString().trim();
-            credentialDetails.name = lines[i + 1].match(nombreRegex).toString().trim();
+            credentialDetails.studentNumber = lines[i].match(studentNumberRegex).toString().trim();
+            credentialDetails.name = lines[i + 1].match(nameRegex).toString().trim();
             credentialDetails.program = lines[i + 2].substr(0, 3);
 
             // Verify Carrera
             let contador = i + 3;
-            while ((!credentialDetails.program.match(carreraRegex) && contador < lines.length - 1)) {
+            while ((!credentialDetails.program.match(programRegex) && contador < lines.length - 1)) {
                 credentialDetails.program = lines[contador].substr(0, 3);
                 contador++;
             }
-
+            this.results.set(imageUrl, credentialDetails);
+            callback(imageUrl);
             return credentialDetails;
         }
     }
+
+    public static results = new Map<string, CredentialDetails>();
 }
 
 export class CredentialDetails {

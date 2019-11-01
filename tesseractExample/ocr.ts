@@ -11,20 +11,25 @@ import { Logger } from '@conectasystems/tools';
  */
 // @injectable()
 export class OcrService {
+    public static worker;
+    public static async init(){
+        this.worker = createWorker();
+
+        await this.worker.load();
+        await this.worker.loadLanguage('spa');
+        await this.worker.initialize('spa');
+        return this.worker;
+    }
+    public static async terminate(){
+        await this.worker.terminate();
+    }
     /**
      * Extracts text from an image
      * @param imageUrl URL of the image to be analyzed
      */
     public static async textFromImage(imageUrl: string): Promise<string> {
-        const worker = createWorker();
-
-        await worker.load();
-        await worker.loadLanguage('spa');
-        await worker.initialize('spa');
-        const { data: { text } } = await worker.recognize(await this.applyFilter(imageUrl));
-        console.log(text);
-        await worker.terminate();
-
+        // const { data: { text } } = await this.worker.recognize(await this.applyFilter(imageUrl));
+        const { data: { text } } = await this.worker.recognize(imageUrl);
         return text;
     }
 
@@ -54,6 +59,11 @@ export class OcrService {
      * @param imageUrl URL of the credential to be analyzed
      */
     public static async scanCredential(imageUrl: string): Promise<CredentialDetails> {
+        if(this.results.has(imageUrl)){
+            let result = this.results.get(imageUrl);
+            this.results.delete(imageUrl);
+            return result
+        }
         let rawText: string;
         let credentialDetails: CredentialDetails = new CredentialDetails();
         let matriculaRegex: RegExp = /[AL](\d{8})/gi;
@@ -84,10 +94,12 @@ export class OcrService {
                 credentialDetails.carrera = lines[contador].substr(0, 3);
                 contador++;
             }
-
+            this.results.set(imageUrl, credentialDetails);
             return credentialDetails;
         }
     }
+
+    public static results = new Map<string, CredentialDetails>();
 }
 
 export class CredentialDetails {
@@ -99,13 +111,19 @@ export class CredentialDetails {
 }
 
 (async () => {
+    await OcrService.init();
+    console.log(new Date().getTime())
     let credential = await OcrService.scanCredential("http://10.49.184.48:8888/fotos/puton.jpeg");
+    console.log(new Date().getTime())
     console.log(credential);
     let credential1 = await OcrService.scanCredential("http://10.49.184.48:8888/fotos/jotin.jpeg");
+    console.log(new Date().getTime())
     console.log(credential1);
     let credential2 = await OcrService.scanCredential("http://10.49.184.48:8888/fotos/jotino.jpeg");
+    console.log(new Date().getTime())
     console.log(credential2);
     let credential3 = await OcrService.scanCredential("http://10.49.184.48:8888/fotos/elver.jpeg");
+    console.log(new Date().getTime())
     console.log(credential3);
     // await OcrService.applyFilter('http://10.49.184.48:8888/fotos/elver.jpeg');
 })();
