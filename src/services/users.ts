@@ -118,7 +118,7 @@ export class UsersService {
                 return {
                     messages: [
                         {
-                            text: `Ya existes en nuestro sistema, estas registrado como ${studentNumberUser.name} ${studentNumberUser.lastname}`,
+                            text: `Ya existe un alumno registrado con la matricula: ${newUser.studentNumber}, está registrado como ${studentNumberUser.name} ${studentNumberUser.lastname}`,
                             quick_replies: [
                                 {
                                     title: 'Ir al menu',

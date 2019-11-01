@@ -52,12 +52,13 @@ export class PlacesService {
                 // Filter nearby places
                 let result: any;
                 if(restrooms){
-                    result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distance FROM "Place" WHERE "isRestroom" = true ORDER BY distance LIMIT 10`);
+                    result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distanceTo FROM "Place" WHERE "isRestroom" = true ORDER BY distanceTo LIMIT 10`);
                 }else {
-                    result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distance FROM "Place" ORDER BY distance LIMIT 10`);
+                    result = await this.req.tools.models.Place.raw(`SELECT *, ${PlacesService.distanceTo(nearbyPoint)} as distanceTo FROM "Place" ORDER BY distanceTo LIMIT 10`);
                 }
                 let places: Array<Place> = [];
                 for (let place of result.rows) {
+                    place.distanceTo = place.distanceto;
                     places.push(place);
                 }
                 return new PlaceCollection({ results: places, total: places.length }).toView();

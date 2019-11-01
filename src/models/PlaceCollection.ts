@@ -56,8 +56,9 @@ export class PlacesView {
     constructor(places: Place[]) {
         let placeViews = [];
         for (let place of places) {
+            let distanceTo = (place.distanceTo != null) ? `(a ${place.distanceTo.toFixed(2)} metros)` : '';
             let placeView = {
-                title: place.name,
+                title: `${place.name}${distanceTo}`,
                 image_url: place.image,
                 subtitle: place.description,
                 buttons: [
