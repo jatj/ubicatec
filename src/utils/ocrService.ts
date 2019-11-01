@@ -4,6 +4,7 @@ import * as imageDownloader from 'image-downloader';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createWorker } from 'tesseract.js';
+import { Logger } from '@conectasystems/tools';
 
 /**
  * Provides an OCR for extracting text from images
@@ -27,8 +28,8 @@ export class OcrService {
      * @param imageUrl URL of the image to be analyzed
      */
     public static async textFromImage(imageUrl: string): Promise<string> {
-        // const { data: { text } } = await this.worker.recognize(await this.applyFilter(imageUrl));
-        const { data: { text } } = await this.worker.recognize(imageUrl);
+        const { data: { text } } = await this.worker.recognize(await this.applyFilter(imageUrl));
+        // const { data: { text } } = await this.worker.recognize(imageUrl);
         return text;
     }
 
@@ -58,11 +59,6 @@ export class OcrService {
      * @param imageUrl URL of the credential to be analyzed
      */
     public static async scanCredential(imageUrl: string, callback?: any): Promise<CredentialDetails> {
-        if(this.results.has(imageUrl)){
-            let result = this.results.get(imageUrl);
-            this.results.delete(imageUrl);
-            return result
-        }
         let rawText: string;
         let credentialDetails: CredentialDetails = new CredentialDetails();
         let studentNumberRegex: RegExp = /[AL](\d{8})/gi;
@@ -93,13 +89,11 @@ export class OcrService {
                 credentialDetails.program = lines[contador].substr(0, 3);
                 contador++;
             }
-            this.results.set(imageUrl, credentialDetails);
-            callback(imageUrl);
+            Logger.debug(credentialDetails);
+            callback(credentialDetails);
             return credentialDetails;
         }
     }
-
-    public static results = new Map<string, CredentialDetails>();
 }
 
 export class CredentialDetails {

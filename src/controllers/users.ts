@@ -67,10 +67,11 @@ export const createUser: API.NextHandleFunction<UbicaTecAPIModels> = async (req,
  **/
 export const parseUser: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
     var credential = req.swagger.params['credential'].value;
+    var fbUserId = req.swagger.params['fbUserId'].value;
     try{
         const usersService = container.resolve(UsersService);
         usersService.init(req);
-        let result = await usersService.parseUser(credential);
+        let result = await usersService.parseUser(credential, fbUserId);
         res.respond(result);
     }catch (error) {
         next(error);

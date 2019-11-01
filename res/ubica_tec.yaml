@@ -191,6 +191,10 @@ paths:
         name: credential
         type: string
         description: User credential
+      - in: query
+        name: fbUserId
+        type: string
+        description: Facebook user id
       responses:
         201:
           $ref: '#/responses/SuccessfulResponse'
