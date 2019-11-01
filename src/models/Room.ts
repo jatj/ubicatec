@@ -30,6 +30,7 @@ export default class Room extends BaseModel implements IRoom {
     number: number;
     image?: string;
     status: IRoom.StatusEnum;
+    isRenter?: boolean;
 
     constructor(obj?: IRoom){
         super()

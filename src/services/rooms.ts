@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
-import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels, Room, RoomCollection } from '../models';
+import { API, Types, Utils, Logger } from '@conectasystems/tools';
+import { UbicaTecAPIModels, Room, RoomCollection, IRoom, Rental, IRental, User } from '../models';
 
 /**
  * Provides endpoints to search and get and search library rooms
@@ -31,15 +31,26 @@ export class RoomsService {
     * @param { string } name name for filter the rooms (optional)
     * @returns { Promise<> }
     **/
-    async listRooms (orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, roomStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', name?: string) {
+    async listRooms (fbUserId: string, orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, roomStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', name?: string) {
         try{
             let query = this.req.query<Room>(Room).skipUndefined();
             query = (name) ? query.where('name', 'like', `%${name}%`) : query;
             query = (roomStatus) ? query : query.where({ roomStatus });
             query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
             query = (!orderBy) ? query.orderBy('idRoom', orderMode || API.Defaults.orderMode) : query;
-            return new RoomCollection(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize)).toView();
+            let res = await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize);
+            let user = await this.req.query<User>(User).skipUndefined().findOne({ fbUserId });
+            for(let i in res.results){
+                if(res.results[i].status == IRoom.StatusEnum.RENTED){
+                    let rental = await this.req.query<Rental>(Rental).skipUndefined().findOne({fkRoom: res.results[i].idRoom, type: IRental.TypeEnum.RENT});
+                    if(rental != null && user != null && rental.fkUser == user.idUser){
+                        res.results[i].isRenter = true;
+                    }
+                }
+            }
+            return new RoomCollection(res).toView();
         }catch(error){
+            Logger.error(error);
             throw error;
         }
     }

@@ -12,6 +12,7 @@ import { UbicaTecAPIModels } from '../models';
  * 
  **/
 export const listBooks: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
+    var fbUserId = req.swagger.params['fbUserId'].value;
     var orderBy = req.swagger.params['orderBy'].value;
     var orderMode = req.swagger.params['orderMode'].value;
     var pageIndex = req.swagger.params['pageIndex'].value;
@@ -22,7 +23,7 @@ export const listBooks: API.NextHandleFunction<UbicaTecAPIModels> = async (req, 
     try{
         const booksService = container.resolve(BooksService);
         booksService.init(req);
-        let result = await booksService.listBooks(orderBy, orderMode, pageIndex, pageSize, bookStatus, category, name);
+        let result = await booksService.listBooks(fbUserId, orderBy, orderMode, pageIndex, pageSize, bookStatus, category, name);
         res.respond(result);
     }catch (error) {
         next(error);

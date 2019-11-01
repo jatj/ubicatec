@@ -17,8 +17,8 @@ export interface IRental {
     fkBook?: number;
     fkRoom?: number;
     type: IRental.TypeEnum;
-    book?: any;
-    room?: any;
+    book?: Book;
+    room?: Room;
 }
 
 export namespace IRental {
@@ -36,8 +36,8 @@ export default class Rental extends BaseModel implements IRental {
     fkBook?: number;
     fkRoom?: number;
     type: IRental.TypeEnum;
-    book?: any;
-    room?: any;
+    book?: Book;
+    room?: Room;
 
     constructor(obj?: IRental){
         super()
@@ -57,7 +57,7 @@ export default class Rental extends BaseModel implements IRental {
 
     static jsonSchema = {
         type: 'object',
-        required: ['type', 'idRental', 'fkUser'],
+        required: ['type', 'fkUser'],
 
         properties: {
             idRental: {
@@ -88,6 +88,25 @@ export default class Rental extends BaseModel implements IRental {
             delete this.idRental;
         }
     }
+
+    static relationMappings = {
+        room: {
+            relation: Model.BelongsToOneRelation,
+            modelClass: `${__dirname}/Room`,
+            join: {
+                from: 'Rental.fkRoom',
+                to: 'Room.idRoom',
+            }
+        },
+        book: {
+            relation: Model.BelongsToOneRelation,
+            modelClass: `${__dirname}/Book`,
+            join: {
+                from: 'Rental.fkBook',
+                to: 'Book.idBook',
+            }
+        },
+    };
 }
 
 export { Rental }

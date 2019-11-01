@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
-import { API, Types, Utils } from '@conectasystems/tools';
-import { UbicaTecAPIModels, Book, BookCollection } from '../models';
+import { API, Types, Utils, Logger } from '@conectasystems/tools';
+import { UbicaTecAPIModels, Book, BookCollection, User, IBook, Rental, IRental } from '../models';
 
 /**
  * Provides endpoints to search and get and search books
@@ -31,7 +31,7 @@ export class BooksService {
     * @param { string } name name for filter the books (optional)
     * @returns { Promise<> }
     **/
-    async listBooks (orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, bookStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
+    async listBooks (fbUserId: string, orderBy?: 'name' | 'category', orderMode?: 'ASC' | 'DESC', pageIndex?: number, pageSize?: number, bookStatus?: 'AVAILABLE' | 'RENTED' | 'RESERVED', category?: string, name?: string) {
         try{
             let query = this.req.query<Book>(Book).skipUndefined();
             query = (name) ? query.where('name', 'like', `%${name}%`) : query;
@@ -39,8 +39,19 @@ export class BooksService {
             query = (category) ? query.where('category', 'like', `%${category}%`) : query;
             query = (orderBy) ? query.orderBy(orderBy, orderMode || API.Defaults.orderMode) : query;
             query = (!orderBy) ? query.orderBy('idBook', orderMode || API.Defaults.orderMode) : query;
-            return new BookCollection(await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize)).toView();
+            let res = await query.page(pageIndex || API.Defaults.pageIndex, pageSize || API.Defaults.pageSize)
+            let user = await this.req.query<User>(User).skipUndefined().findOne({ fbUserId });
+            for(let i in res.results){
+                if(res.results[i].status == IBook.StatusEnum.RENTED){
+                    let rental = await this.req.query<Rental>(Rental).skipUndefined().findOne({fkBook: res.results[i].idBook, type: IRental.TypeEnum.RENT});
+                    if(rental != null && user != null && rental.fkUser == user.idUser){
+                        res.results[i].isRenter = true;
+                    }
+                }
+            }
+            return new BookCollection(res).toView();
         }catch(error){
+            Logger.error(error);
             throw error;
         }
     }

@@ -7,21 +7,21 @@
  *
  */
 import Book from './Book';
-import { IBook } from '.';
+import { IBook, IRental } from '.';
 
-export interface IBookCollection { 
+export interface IBookCollection {
     results: Book[];
     total: number;
 }
 
 
-export default class BookCollection implements IBookCollection { 
+export default class BookCollection implements IBookCollection {
     results: Book[];
     total: number;
 
-    constructor(obj?: IBookCollection){
-        
-        if(obj == null) return;
+    constructor(obj?: IBookCollection) {
+
+        if (obj == null) return;
         this.results = obj.results;
         this.total = obj.total;
     }
@@ -57,27 +57,39 @@ export class BooksView {
     constructor(books: Book[]) {
         let bookViews = [];
         for (let book of books) {
+            let buttons;
+            if(book.status == IBook.StatusEnum.AVAILABLE){
+                buttons = [
+                    {
+                        type: 'show_block',
+                        block_names: ["Rentar libro"],
+                        title: 'Rentar',
+                        set_attributes: {
+                            fkBook: book.idBook,
+                            bookTitle: book.title,
+                            rentalType: IRental.TypeEnum.RENT
+                        },
+                    }
+                ]
+            } else if(book.status == IBook.StatusEnum.RENTED && book.isRenter) {
+                buttons = [
+                    {
+                        type: 'show_block',
+                        block_names: ["Regresar libro"],
+                        title: 'Regresar',
+                        set_attributes: {
+                            fkBook: book.idBook,
+                            bookTitle: book.title,
+                            rentalType: IRental.TypeEnum.RETURN
+                        },
+                    }
+                ]
+            }
             let bookView = {
                 title: book.title,
                 image_url: book.image,
                 subtitle: `${book.code} - ${BooksView.getStatus(book.status)} - ${book.description}`,
-                buttons: [
-                    {
-                        type: 'show_block',
-                        block_names: ["Rentar libro"],
-                        title: 'Rentar'
-                    },
-                    {
-                        type: 'show_block',
-                        block_names: ["Reservar libro"],
-                        title: 'Reservar'
-                    },
-                    {
-                        type: 'show_block',
-                        block_names: ["Regresar libro"],
-                        title: 'Regresar'
-                    }
-                ]
+                buttons
             }
             bookViews.push(bookView);
         }

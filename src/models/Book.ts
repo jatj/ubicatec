@@ -34,6 +34,7 @@ export default class Book extends BaseModel implements IBook {
     code?: string;
     status?: IBook.StatusEnum;
     image?: string;
+    isRenter?: boolean;
 
     constructor(obj?: IBook){
         super()

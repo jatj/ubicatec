@@ -7,7 +7,7 @@
  *
  */
 import Room from './Room';
-import { IRoom } from '.';
+import { IRoom, IRental } from '.';
 
 export interface IRoomCollection {
     results: Room[];
@@ -57,27 +57,39 @@ export class RoomsView {
     constructor(rooms: Room[]) {
         let roomViews = [];
         for (let room of rooms) {
+            let buttons;
+            if(room.status == IRoom.StatusEnum.AVAILABLE){
+                buttons = [
+                    {
+                        type: 'show_block',
+                        block_names: ["Rentar sala"],
+                        title: 'Rentar',
+                        set_attributes: {
+                            fkRoom: room.idRoom,
+                            roomNumber: room.number,
+                            rentalType: IRental.TypeEnum.RENT
+                        },
+                    }
+                ]
+            } else if(room.status == IRoom.StatusEnum.RENTED && room.isRenter) {
+                buttons = [
+                    {
+                        type: 'show_block',
+                        block_names: ["Regresar sala"],
+                        title: 'Regresar',
+                        set_attributes: {
+                            fkRoom: room.idRoom,
+                            roomNumber: room.number,
+                            rentalType: IRental.TypeEnum.RETURN
+                        },
+                    }
+                ]
+            }
             let roomView = {
                 title: `Sala: ${room.number}`,
                 image_url: room.image,
                 subtitle: `${RoomsView.getStatus(room.status)}`,
-                buttons: [
-                    {
-                        type: 'show_block',
-                        block_names: ["Rentar sala"],
-                        title: 'Rentar'
-                    },
-                    {
-                        type: 'show_block',
-                        block_names: ["Reservar sala"],
-                        title: 'Reservar'
-                    },
-                    {
-                        type: 'show_block',
-                        block_names: ["Regresar sala"],
-                        title: 'Regresar'
-                    }
-                ]
+                buttons
             }
             roomViews.push(roomView);
         }

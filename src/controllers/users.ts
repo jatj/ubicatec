@@ -3,7 +3,6 @@ import { container } from "tsyringe";
 import { API } from '@conectasystems/tools';
 import { UsersService } from '../services/users';
 import { UbicaTecAPIModels } from '../models';
-import { User } from '../models/User';
 
 /**
  * get all the users
@@ -56,6 +55,22 @@ export const createUser: API.NextHandleFunction<UbicaTecAPIModels> = async (req,
         const usersService = container.resolve(UsersService);
         usersService.init(req);
         let result = await usersService.createUser(newUser);
+        res.respond(result);
+    }catch (error) {
+        next(error);
+    }
+}
+
+/**
+ * parse the user credential
+ * This will apply ocr to the user's credential
+ **/
+export const parseUser: API.NextHandleFunction<UbicaTecAPIModels> = async (req, res, next) => {
+    var credential = req.swagger.params['credential'].value;
+    try{
+        const usersService = container.resolve(UsersService);
+        usersService.init(req);
+        let result = await usersService.parseUser(credential);
         res.respond(result);
     }catch (error) {
         next(error);

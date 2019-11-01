@@ -2,6 +2,7 @@ import { injectable } from "tsyringe";
 import { API, Types, Utils, Logger } from '@conectasystems/tools';
 import { UbicaTecAPIModels, User } from '../models';
 import { transaction } from "objection";
+import { OcrService } from "../utils/ocrService";
 
 /**
  * Provides endpoints to authenticate users
@@ -139,6 +140,44 @@ export class UsersService {
         } catch (error) {
             Logger.error(error);
             await trx.rollback();
+            throw error;
+        }
+    }
+
+    /**
+    * parse the user credential
+    * This will apply ocr to the user's credential
+    * @param { credential } credential user credential link
+    * @returns { Promise<> }
+    **/
+    async parseUser(credential?: string) {
+        try {
+            let parsedCredential = await OcrService.scanCredential(credential);
+            console.log(parsedCredential);
+            return {
+                messages: [
+                    {
+                        text: `Confirma tus datos:\n nombre completo: ${parsedCredential.name} \n matrícula: ${parsedCredential.studentNumber} \n programa: ${parsedCredential.program}`,
+                        quick_replies: [
+                            {
+                                title: 'Si, registrar',
+                                set_attributes: {
+                                    studentNumber: parsedCredential.studentNumber,
+                                    studentName: parsedCredential.name,
+                                    studentProgram: parsedCredential.program
+                                },
+                                block_names: ['Confirma registro']
+                            },
+                            {
+                                title: 'No',
+                                block_names: ['Registro usuario']
+                            }
+                        ]
+                    }
+                ]
+            }
+        } catch (error) {
+            Logger.error(error);
             throw error;
         }
     }

@@ -15,8 +15,8 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 
 # ----------------------------- CONFIGURATION
-# host: localhost
-host: ubicatec.azurewebsites.net
+host: localhost
+# host: ubicatec.azurewebsites.net
 basePath: /UbicaTec/v1
 schemes:
  - http
@@ -179,6 +179,25 @@ paths:
           $ref: '#/responses/NoAccessResponse'
         default:
           $ref: '#/responses/ErrorResponse'
+  /user/credential:
+    get:
+      tags:
+      - users
+      summary: parse the user credential
+      description: This will apply ocr to the user's credential
+      operationId: parseUser
+      parameters:
+      - in: query
+        name: credential
+        type: string
+        description: User credential
+      responses:
+        201:
+          $ref: '#/responses/SuccessfulResponse'
+        401:
+          $ref: '#/responses/NoAccessResponse'
+        default:
+          $ref: '#/responses/ErrorResponse'
           
   # ----------------------------- PLACES 
   /place:
@@ -296,6 +315,10 @@ paths:
         pageSize: pageSize
       parameters:
       - in: query
+        name: fbUserId
+        type: string
+        description: fbUserId of the user who is searching
+      - in: query
         name: name
         type: string
         description: name for filter the books
@@ -374,6 +397,10 @@ paths:
         pageSize: pageSize
       parameters:
       - in: query
+        name: fbUserId
+        type: string
+        description: fbUserId of the user who is searching
+      - in: query
         name: name
         type: string
         description: name for filter the rooms
@@ -431,8 +458,8 @@ paths:
           $ref: '#/responses/ErrorResponse'
 
   # ----------------------------- RENTAL 
-  /rental/room/{idRoom}:
-    put:
+  /rental/room/{idRoom}/{fbUserId}:
+    post:
       tags:
       - rental
       summary: rent/return/reserve a room
@@ -446,10 +473,15 @@ paths:
         format: uint64
         required: true
         description: id of the room to rent/return/reserve
+      - in: path
+        name: fbUserId
+        type: string
+        required: true
+        description: id of the user to rent/return/reserve
       - in: body
         name: rental
         schema: 
-          $ref: '#/definitions/APIResponse'
+          $ref: '#/definitions/Rental'
       responses:
         200:
           description: successful operation
@@ -459,8 +491,8 @@ paths:
           $ref: '#/responses/NoAccessResponse'
         default:
           $ref: '#/responses/ErrorResponse'
-  /rental/book/{idBook}:
-    put:
+  /rental/book/{idBook}/{fbUserId}:
+    post:
       tags:
       - rental
       summary: rent/return/reserve a book
@@ -474,10 +506,15 @@ paths:
         format: uint64
         required: true
         description: id of the book to rent/return/reserve
+      - in: path
+        name: fbUserId
+        type: string
+        required: true
+        description: id of the user to rent/return/reserve
       - in: body
         name: rental
         schema: 
-          $ref: '#/definitions/APIResponse'
+          $ref: '#/definitions/Rental'
       responses:
         200:
           description: successful operation
@@ -487,19 +524,19 @@ paths:
           $ref: '#/responses/NoAccessResponse'
         default:
           $ref: '#/responses/ErrorResponse'
-  /rental/user/{idUser}/book:
+  /rental/user/{fbUserId}/book:
     get:
       tags:
       - rental
       summary: gets the book rentals of a specific user
-      description: This will return a collection of book rentals from an specific user that matches the specific [idUser]
+      description: This will return a collection of book rentals from an specific user that matches the specific [fbUserId]
       operationId: getBookRentals
       parameters:
-      - name: idUser
+      - name: fbUserId
         in: path
-        description: idUser of the searched user
+        description: fbUserId of the searched user
         required: true
-        type: integer
+        type: string
       responses:
         200:
           description: successful operation
@@ -509,19 +546,19 @@ paths:
           $ref: '#/responses/NoAccessResponse'
         default:
           $ref: '#/responses/ErrorResponse'
-  /rental/user/{idUser}/room:
+  /rental/user/{fbUserId}/room:
     get:
       tags:
       - rental
       summary: gets the room rentals of a specific user
-      description: This will return a collection of room rentals from an specific user that matches the specific [idUser]
+      description: This will return a collection of room rentals from an specific user that matches the specific [fbUserId]
       operationId: getRoomRentals
       parameters:
-      - name: idUser
+      - name: fbUserId
         in: path
-        description: idUser of the searched user
+        description: fbUserId of the searched user
         required: true
-        type: integer
+        type: string
       responses:
         200:
           description: successful operation
