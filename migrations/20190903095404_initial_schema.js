@@ -145,6 +145,7 @@ exports.up = knex => {
       .references('Book.idBook')
       .index()
       .onDelete('NO ACTION')
+      .onUpdate('NO ACTION')
       .notNullable()
       .comment('The foreign key of the user associated with this rental')
       // Creating property: fkBook
@@ -153,6 +154,7 @@ exports.up = knex => {
       .references('Book.idBook')
       .index()
       .onDelete('NO ACTION')
+      .onUpdate('NO ACTION')
       .comment('The foreign key of the book associated with this rental, if it is a book rental')
       // Creating property: fkRoom
       table
@@ -160,6 +162,7 @@ exports.up = knex => {
       .references('Room.idRoom')
       .index()
       .onDelete('NO ACTION')
+      .onUpdate('NO ACTION')
       .comment('The foreign key of the book associated with this rental, if it is a room rental')
       // Creating property: type
       table

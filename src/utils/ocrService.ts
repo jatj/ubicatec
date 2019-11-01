@@ -28,7 +28,8 @@ export class OcrService {
      * @param imageUrl URL of the image to be analyzed
      */
     public static async textFromImage(imageUrl: string): Promise<string> {
-        const { data: { text } } = await this.worker.recognize(await this.applyFilter(imageUrl));
+        let [buff, imageFilename] = await this.applyFilter(imageUrl);
+        const { data: { text } } = await this.worker.recognize(imageFilename);
         // const { data: { text } } = await this.worker.recognize(imageUrl);
         return text;
     }
@@ -47,7 +48,7 @@ export class OcrService {
             });
             fs.unlinkSync(filename);
             fs.writeFileSync(filename, buff);
-            return buff;
+            return [buff, filename];
         } catch (error) {
             throw error;
         }

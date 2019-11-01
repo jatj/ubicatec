@@ -15,8 +15,8 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 
 # ----------------------------- CONFIGURATION
-# host: localhost
-host: ubicatec.azurewebsites.net
+host: localhost
+# host: ubicatec.azurewebsites.net
 basePath: /UbicaTec/v1
 schemes:
  - http
