@@ -21,11 +21,11 @@ export class PlacesService {
     }
 
     static contained(point): string {
-        return `ST_Contains(ST_GeomFromGeoJSON(fence), ST_GeomFromGeoJSON('${JSON.stringify(point)}'))`;
+        return `ST_Contains(ST_GeomFromGeoJSON(fence::TEXT), ST_GeomFromGeoJSON('${JSON.stringify(point)}'))`;
     }
 
     static distanceTo(point): string {
-        return `ST_Distance(ST_GeomFromGeoJSON(fence), ST_GeomFromGeoJSON('${JSON.stringify(point)}'), false)`;
+        return `ST_Distance(ST_GeomFromGeoJSON(fence::TEXT), ST_GeomFromGeoJSON('${JSON.stringify(point)}'), false)`;
     }
 
     /**
